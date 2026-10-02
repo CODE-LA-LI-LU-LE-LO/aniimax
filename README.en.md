@@ -2,11 +2,11 @@
 
 [한국어](README.md) | English
 
-The web app now supports Korean and English. Use the `English` / `한국어` button in the header; your choice is saved in this browser and both languages share the same saved inputs. Switching reloads the page, so run the calculation again to regenerate results. URLs with `?lang=en` or `?lang=ko` select a language explicitly. These changes require a separate deployment and are not yet reflected in the upstream public app linked below.
+The web app defaults to Korean and supports English. Use the `English` / `한국어` button in the header; your choice is saved in this browser and both languages share the same saved inputs. Switching reloads the page, so run the calculation again to regenerate results. URLs with `?lang=en` or `?lang=ko` select a language explicitly. This document and [README.md](README.md) cover the same sections, examples and technical details; update both when changing documentation. Commands, API identifiers, formulas and actual CLI output remain in English in both documents.
 
 A command-line tool, Rust library, and **web application** for optimizing production paths in Aniimo Homeland. Calculate the fastest way to produce your target amount of Homeland currency, and see what every facility you own should be doing at once.
 
-Updated for the full release, with a joint LP-based facility-allocation engine for the web app (the CLI uses a simpler greedy approach; see [How the Optimization Works](#how-the-optimization-works) for the difference). Game data is being re-verified against the release facility by facility; facilities whose data hasn't been confirmed yet are left out until it is, so the calculator never recommends numbers from an older version of the game.
+Updated for the full release, with a mixed-integer exact planner and a joint LP-based fallback for the web app (the CLI uses a simpler greedy approach; see [How the Optimization Works](#how-the-optimization-works) for the difference). Game data is being re-verified facility by facility. Available recipes that are not yet verified are marked in the recipe list and in plans that use them; incorrect data can affect the resulting plan.
 
 > **Note:** Game data for the full release is still being filled in, so some facilities and items are missing.
 
@@ -14,13 +14,20 @@ Updated for the full release, with a joint LP-based facility-allocation engine f
 
 **[Launch Aniimax Web App](https://ae-bii.github.io/aniimax/)** - No installation required!
 
+This link is the upstream project's public app, not this fork's deployment. This repository's Pages workflow must be deployed separately; check its successful deployment for the published URL. A push to `main` alone does not deploy it.
+
+## Korean Terminology
+
+Facility and item names were matched by item ID against the English and Korean data on [Aniimo Camp](https://aniimocamp.com/ko/). Verified names and source IDs are in [web/game-terms-ko.js](web/game-terms-ko.js); UI strings and provisional translations are in [web/locale-ko.js](web/locale-ko.js). Korean labels also show English names for comparison and search. Personality, module and some event names are provisional, not asserted to be official. Solver keys, CSV identifiers, API fields, saved inputs and CLI options remain in English; for example, `농장 (Farmland)` uses `Farmland` internally and `밀 (Wheat)` uses `wheat`.
+
 ## Features
 
 **Web app**
+
 - **Simple or Advanced Setup**: Simple mode only asks for your RV level and assumes everything that level allows is built and upgraded; advanced mode sets every facility's count and level (and can start from the simple-mode setup)
 - **Live Production Plan**: Set your facilities to get the best achievable rate and what every facility should produce; no target amount needed
 - **Goal Timing**: Add a target amount afterward to see how long it'll take; updates instantly as you type, no re-solving
-- **Proven Best Plans**: The web app solves the whole problem exactly (every recipe, whole plots and machines, and environment building layouts together) with the [HiGHS](https://highs.dev) solver, and proves each plan is the best possible for your facilities
+- **Proven Best Plans**: The web app solves every recipe, whole plots and machines, and environment building layout candidates together with [HiGHS](https://highs.dev). It reports proven optimality within the model and candidate set, or the remaining optimality gap when the time limit is reached
 - **Joint Facility Allocation**: Solves for every item and every facility at once, so shared resources (e.g. two recipes both wanting the same Farmland soybean supply) are split correctly instead of double-counted
 - **Whole-Unit Realism**: Growers are rounded to whole plots and processors are dedicated to one recipe each, matching how the game actually works; only the Woodworking Bench and Chimney Kiln take turns between tiers, since each tier is made from the one below
 - **Level-Up Strategy**: Plans the soonest next RV level-up (Home Coins plus Wood Blocks and Mineral Sand, or from RV 7 the Woodworking Bench and Chimney Kiln items it costs), counting what you already have, then earns as many Home Coins as that pace allows; RV 2 to 20
@@ -37,6 +44,7 @@ Updated for the full release, with a joint LP-based facility-allocation engine f
 - **Item Upgrade Modules**: Support for module-unlocked items (Ecological, Kitchen, Resource Detector, Crafting)
 
 **CLI / library**
+
 - **Time or Energy Optimization**: Fastest path, or best profit per energy unit
 - **Energy Self-Sufficient Mode**: Produce items to consume for energy instead of buying
 - **Cross-Facility Parallel Mode**: Run independent, non-conflicting production chains simultaneously
@@ -47,17 +55,20 @@ Updated for the full release, with a joint LP-based facility-allocation engine f
 
 ### Prerequisites
 
-- [Rust](https://www.rust-lang.org/tools/install) (1.70 or later)
+- [Rust](https://www.rust-lang.org/tools/install) and Cargo. The upstream document listed Rust 1.70 as a minimum; current stable is recommended to satisfy the locked dependencies' requirements.
+- For the web app: the `wasm32-unknown-unknown` target, `wasm-pack`, and a static HTTP server such as Python 3.
 
 ### Building from Source
 
 ```bash
-git clone https://github.com/ae-bii/aniimax.git
+git clone https://github.com/CODE-LA-LI-LU-LE-LO/aniimax.git
 cd aniimax
-cargo build --release
+cargo build --release --locked
 ```
 
 The binary will be available at `target/release/aniimax`.
+
+Run the CLI from the repository root so it can read `data/`. CLI output and options are currently in English. The examples below retain their original command syntax; add `--locked` to Cargo commands when you want to enforce the existing lockfile.
 
 ## Usage
 
@@ -157,9 +168,11 @@ Options:
   -V, --version                      Print version
 ```
 
-> **CLI coverage:** the CLI exposes the 10 facilities listed above; any facility without a flag counts as not owned. The CLI also doesn't model environment coverage, so it can recommend a crop that needs a Heat Furnace, Cooling Unit or Sunlamp you don't own. For full coverage, use the [web app](https://ae-bii.github.io/aniimax/) instead.
+> **CLI coverage:** the CLI exposes the 10 facilities listed above; any facility without a flag counts as not owned. The CLI also doesn't model environment coverage, so it can recommend a crop that needs a Heat Furnace, Cooling Unit or Sunlamp you don't own. For full coverage, use the web app (see [Try It Online](#try-it-online) or [Web Development](#web-development)).
 
 ## Example Output
+
+This is illustrative output from earlier game data, not a guarantee of the current item count, times or profits. The CLI's actual output remains in English.
 
 ```
 Aniimax - Aniimo Production Optimizer
@@ -234,7 +247,7 @@ The web app builds the whole problem as one mixed-integer program (`src/exact.rs
 - **Objective.** Coins/sec from everything sold, minus seed costs. With byproducts prioritized, the most of each byproduct is found first and the plan must keep making that much.
 - **Level-up.** The most level-ups per day ("pace") the plan could keep up: coins earned plus `pace x stock` must cover `pace x cost` for coins and every item, which stays linear. A second solve then finds the most coins at that pace, and a third puts spare Bench and Kiln time into more of what the level-up costs, so e.g. plentiful Mineral Sand ends up as ore rather than sitting raw.
 
-HiGHS either proves its plan optimal, which the page reports, or stops at a time limit and reports how far from optimal it could be. Before a plan is shown, the whole-unit counts are re-solved with `microlp` and every limit is re-checked independently (`check_plan`); if anything fails, the page falls back to the heuristic planner below.
+HiGHS either proves its plan optimal within the current model and layout candidate set, which the page reports, or stops at the 30-second time limit and reports how far from optimal it could be. Before a plan is shown, the whole-unit counts are re-solved with `microlp` and every limit is re-checked independently (`check_plan`); if anything fails, the page falls back to the heuristic planner below.
 
 ### Web App Fallback: Joint Facility Allocation
 
@@ -515,7 +528,7 @@ Adding more farms increases the gathering rate until it matches or exceeds the p
 
 ### Computational Complexity
 
-The table below describes the CLI/library's greedy functions above, not the web app's linear program (LP solve time depends on the solver and isn't a simple closed form, but is fast in practice, well under a second for the current item count).
+The table below describes the CLI/library's greedy functions above, not the web app's mixed-integer planner or LP fallback. Their solve times depend on the solver and problem size and do not have the simple closed forms listed here.
 
 Let $n$ = number of production items, $m$ = maximum chain depth, $f$ = facilities per chain, $k$ = selected parallel chains, $F$ = facility count, $M$ = number of materials in a recipe.
 
@@ -526,7 +539,7 @@ Let $n$ = number of production items, $m$ = maximum chain depth, $f$ = facilitie
 | Facility allocation | $O(M \cdot \sqrt{B} \cdot \log(M\sqrt{B}))$ | Binary search on candidate times |
 | Startup time calculation | $O(k)$ | Max over $k$ selected chains |
 
-With ~64 items, shallow chains ($m \leq 3$), and typically $M \leq 3$ materials, the algorithm runs in sub-millisecond time.
+The original performance example used about 64 items, shallow chains ($m \leq 3$), and typically $M \leq 3$ materials, reporting sub-millisecond execution. It is historical, not a benchmark or timing guarantee for the current data.
 
 ## Library Usage
 
@@ -589,7 +602,8 @@ cargo doc --open
 1. Install wasm-pack:
 
    ```bash
-   cargo install wasm-pack
+   rustup target add wasm32-unknown-unknown
+   cargo install wasm-pack --locked --version 0.15.0
    ```
 
 2. Build the WASM module:
@@ -597,7 +611,7 @@ cargo doc --open
    ```bash
    ./build-wasm.sh
    # or manually:
-   wasm-pack build --target web --out-dir web/pkg
+   wasm-pack build --target web --out-dir web/pkg --no-opt --locked
    ```
 
 3. Test locally:
@@ -606,9 +620,13 @@ cargo doc --open
    ```
    Open http://localhost:8080 in your browser.
 
+Use HTTP, not a directly opened HTML file: the app uses Web Workers and WASM. `web/pkg/` and `target/` are generated and ignored by Git. `--no-opt` skips only the additional `wasm-opt` size optimization, not Rust's release optimization; omit it for deployment when Binaryen can be downloaded. `./build-wasm.sh` uses the default build without this option.
+
 ### Deploying to GitHub Pages
 
-Deployment (`.github/workflows/deploy.yml`) runs on pushing a version tag (`v*`) or via manual workflow dispatch, not on every push to main. Tag a release (`git tag v0.14.1 && git push --tags`) or trigger the workflow manually to deploy. You can also deploy by hand by copying the contents of the `web/` directory (including a freshly built `web/pkg/`) to your gh-pages branch.
+Deployment (`.github/workflows/deploy.yml`) runs on pushing a version tag (`v*`) or via manual workflow dispatch, not on every push to `main`. First set **Settings → Pages → Build and deployment → Source** to **GitHub Actions** and confirm deployment permissions. Then run **Deploy to GitHub Pages** from Actions on the intended branch, or push an intended release tag. Publishing succeeds only after the build and deploy jobs finish successfully. `Get Pages site failed` / `HttpError: Not Found` at **Setup Pages** means the Pages site needs to be enabled or configured for Actions.
+
+As an alternative, you can manually copy the contents of `web/` (including a freshly built `web/pkg/`) to a `gh-pages` branch; that separate approach requires changing the Pages source to branch deployment.
 
 ## Data Format
 
@@ -656,6 +674,11 @@ data/
   *.csv              - Production data files
 web/
   index.html         - Optimizer page (facility plan, goal timing, math/help/facilities modals)
+  index.en.html      - English page; keep application element IDs aligned with index.html
+  language-preference.js - Language switching, persistence and URL selection
+  locale.js          - Presentation adapter for the selected language
+  locale-ko.js       - Korean UI text and provisional game terminology
+  game-terms-ko.js   - Reference-verified Korean names and source IDs
   facility-config.js - Shared facility list/categories
   app.js             - Page logic, including the facility recipe reference modal
   style.css          - Styling
@@ -666,6 +689,9 @@ web/
   pkg/               - Built WASM module (generated)
 tests/
   *.rs               - Integration tests
+  *.mjs              - Localization and language-switching tests
+README.md            - Korean documentation (same content as README.en.md)
+README.en.md         - English documentation
 ```
 
 ## Contributing
@@ -715,6 +741,28 @@ wasm-pack build --target web --out-dir web/pkg
 cd web && python3 -m http.server 8080
 ```
 
+### Validation and Documentation Maintenance
+
+Use release-mode Rust tests to reduce the cost of long-running packing checks:
+
+```bash
+cargo test --release --locked --all-targets
+cargo test --release --locked --test data_tests
+cargo test --release --locked --test models_tests
+cargo test --release --locked --test optimizer_tests
+cargo test --release --locked --test exact_tests
+node --check web/app.js
+node --check web/locale.js
+node --check web/locale-ko.js
+node --test tests/localization_tests.mjs tests/language_tests.mjs
+```
+
+Optional data-generation and expensive packing tests are ignored by default. Run them only when changing the relevant rules and follow each test's instructions; `bake_pair_coverage` can regenerate a data file.
+
+Check Simple/Advanced inputs, Korean/English recipe search and exclusion, priorities, Aniimo lists, saved inputs, goals, themes, help and result tooltips in the browser. Check both language buttons, reloads and root-URL revisits. Keep form `value` and calculation-related `data-*` identifiers unchanged; translate only presentation text and attributes such as `title`, `aria-label`, `placeholder`, `data-tooltip` and `data-label`. User-entered Aniimo names must remain unchanged.
+
+Maintain README.md and README.en.md together: the same sections, commands, formulas, option list, API example, data-file list and caveats should appear in both. Translate prose and terminology, not machine identifiers or actual output. Add future features or corrections to both documents rather than replacing one with a summary.
+
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE) for details. Bundled HiGHS has its [own license](web/vendor/highs/LICENSE). This is an unofficial fan tool, not affiliated with or endorsed by Aniimo's creators.
