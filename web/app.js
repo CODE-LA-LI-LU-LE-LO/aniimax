@@ -1,3 +1,5 @@
+import { textKo, htmlKo, localizeElement, itemNameKo, isKorean } from './locale.js';
+
 // Aniimax Web Application
 
 import {
@@ -244,7 +246,7 @@ function renderTierRows(name) {
     if (!f || !container) return;
     const tiers = facilityTiers[name];
     const showRemove = tiers.length > 1;
-    container.innerHTML = tiers.map((tier, i) => `
+    container.innerHTML = htmlKo(tiers.map((tier, i) => `
         <div class="facility-inputs tier-row" data-tier-index="${i}">
             <div class="input-field">
                 <label>Count</label>
@@ -258,7 +260,7 @@ function renderTierRows(name) {
             `}
             ${showRemove ? '<button type="button" class="tier-remove-btn" title="Remove this level">&times;</button>' : ''}
         </div>
-    `).join('');
+    `).join(''));
 }
 
 // Build the facility-card inputs, grouped into a labeled section per category. Runs before other
@@ -267,7 +269,7 @@ function renderTierRows(name) {
 // dynamically after this initial render.
 function renderFacilityCards() {
     const grid = document.getElementById('facilities-grid');
-    grid.innerHTML = FACILITY_CATEGORIES.map(category => {
+    grid.innerHTML = htmlKo(FACILITY_CATEGORIES.map(category => {
         const cards = FACILITIES.filter(f => f.category === category).map(f => `
             <div class="facility-card">
                 <h4>${f.name} <span class="info-icon" data-tooltip="${f.tooltip}">?</span></h4>
@@ -281,7 +283,7 @@ function renderFacilityCards() {
                 <div class="facilities-grid">${cards}</div>
             </div>
         `;
-    }).join('');
+    }).join(''));
     FACILITIES.forEach(f => renderTierRows(f.name));
 }
 
@@ -501,7 +503,7 @@ async function initWasm() {
         const version = await callWorker('get_version');
         wasmReady = true;
 
-        document.getElementById('version').textContent = version;
+        document.getElementById('version').textContent = textKo(version);
         loadRecipeIndex();
 
         console.log(`Aniimax v${version} loaded successfully`);
@@ -532,7 +534,7 @@ function populateHomeLevels() {
     }
     for (const id of ['home-level', 'fill-level']) {
         const select = document.getElementById(id);
-        select.innerHTML = options.join('');
+        select.innerHTML = htmlKo(options.join(''));
         select.value = String(MAX_HOME_LEVEL);
     }
 }
@@ -555,12 +557,12 @@ function renderSimpleSummary() {
         ['Crafting Module', modules.crafting_module],
     ].map(([name, level]) => chip('', name, level > 0 ? `Lv.${level}` : 'not yet')).join('');
     const kinds = FACILITIES.filter(f => facilities[f.name][0].count > 0).length;
-    document.getElementById('simple-summary-title').textContent = `${kinds} facilities and 4 modules at RV ${homeLevel}`;
-    document.getElementById('simple-summary').innerHTML = `
+    document.getElementById('simple-summary-title').textContent = textKo(`${kinds} facilities and 4 modules at RV ${homeLevel}`);
+    document.getElementById('simple-summary').innerHTML = htmlKo(`
         <p class="assume-title">Facilities</p>
         <div class="chip-grid">${built}</div>
         <p class="assume-title">Modules</p>
-        <div class="chip-grid">${moduleChips}</div>`;
+        <div class="chip-grid">${moduleChips}</div>`);
 }
 
 // Whether the player has picked Advanced mode's level-up target; until then it follows the RV
@@ -617,11 +619,11 @@ let unlockedSpecial = new Set();
 const SPECIAL_NAMES = new Set(SPECIAL_RECIPES.map(r => r.name));
 
 function renderSpecialRecipes() {
-    document.getElementById('special-grid').innerHTML = SPECIAL_RECIPES.map(r => `
+    document.getElementById('special-grid').innerHTML = htmlKo(SPECIAL_RECIPES.map(r => `
         <label class="special-option">
             <input type="checkbox" data-special="${r.name}"${unlockedSpecial.has(r.name) ? ' checked' : ''}>
             <span>${prettyItem(r.name)}</span>
-        </label>`).join('');
+        </label>`).join(''));
 }
 
 function attachSpecialHandlers() {
@@ -966,9 +968,9 @@ function renderImprovements() {
     // The status line opens what was checked. The card is rebuilt as each result comes in; keep
     // the list open if the player opened it.
     const open = !!document.querySelector('#improve-list .improve-checked')?.open;
-    document.getElementById('improve-list').innerHTML = improvementsChecked(best, status, open) + (rows.length
+    document.getElementById('improve-list').innerHTML = htmlKo(improvementsChecked(best, status, open) + (rows.length
         ? `<ol class="improve-list">${rows.map(r => `<li><span class="improve-name">${r.candidate.label}</span><span class="improve-gain">${r.gain.text}</span></li>`).join('')}</ol>`
-        : '');
+        : ''));
 }
 
 // Everything the ranking tries, by kind, each with how it came out: the gain, "no gain", or
@@ -1149,7 +1151,11 @@ const LAYOUT_CATEGORY_COLORS = {
 const layoutColor = m => m.building
     ? (ENVIRONMENT_MODE_COLORS[m.mode] || '#9aa0a8')
     : ENVIRONMENT_FACILITY_COLORS[m.facility] || LAYOUT_CATEGORY_COLORS[FACILITY_CATEGORY_BY_NAME.get(m.facility)] || '#888888';
-const initialsOf = name => name.split(/[\s-]+/).map(w => w[0]).join('').toUpperCase();
+const initialsOf = name => isKorean ? ({
+    Farmland: '밭', Woodland: '숲', Mine: '광산', Well: '우물',
+    'Carousel Mill': '방앗간', 'Dance Pad Polisher': '성장',
+    'Storage Unit': '저장', 'Crafting Table': '작업대',
+}[name] || textKo(name).split(' (')[0].slice(0, 3)) : name.split(' ').map(word => word[0]).join('');
 
 let layoutRunId = 0;
 let layoutWorker = null;
@@ -1182,7 +1188,7 @@ function attachLayoutHandlers() {
 
 function drawLayout(drawn) {
     const diagram = document.getElementById('layout-diagram');
-    diagram.innerHTML = homelandSvg(drawn.layout, drawn.homeLevel);
+    diagram.innerHTML = htmlKo(homelandSvg(drawn.layout, drawn.homeLevel));
     // With the simulation off, the layout is drawn on its own.
     const on = document.getElementById('layout-sim-on').checked;
     diagram.classList.toggle('no-sim', !on);
@@ -1201,8 +1207,8 @@ function renderHomelandLayout(plan) {
     stopLayoutSim();
     setStep('layout', 'start');
     card.style.display = 'block';
-    document.getElementById('layout-summary').textContent = 'Laying out…';
-    document.getElementById('layout-diagram').innerHTML = '';
+    document.getElementById('layout-summary').textContent = textKo('Laying out…');
+    document.getElementById('layout-diagram').innerHTML = htmlKo('');
     // Worked out in a worker of its own: a large homeland takes a few seconds.
     const { pieces, unplaced } = homelandPieces(plan, lastPlanInput);
     const homeLevel = layoutHomeLevel();
@@ -1227,9 +1233,9 @@ function renderHomelandLayout(plan) {
             noRoom.length ? `No room found in RV ${homeLevel}'s plots for: ${noRoom.join(', ')}.` : '',
             unplaced.length ? `Not placed, size unknown: ${unplaced.join(', ')}.` : '',
         ].filter(Boolean).join(' ');
-        document.getElementById('layout-summary').textContent = `${trips > 0
+        document.getElementById('layout-summary').textContent = textKo(`${trips > 0
             ? `${formatNumber(Math.round(trips))} trips/hour to the Storage Unit, ${(walked / trips).toFixed(1)} tiles each on average, in the ${cells.length} plot${cells.length === 1 ? '' : 's'} open at RV ${homeLevel}.`
-            : 'Nothing in this plan is carried to the Storage Unit.'}${notes ? ` ${notes}` : ''}`;
+            : 'Nothing in this plan is carried to the Storage Unit.'}${notes ? ` ${notes}` : ''}`);
         lastLayout = { layout, homeLevel };
         drawLayout(lastLayout);
         setStep('layout', 'done');
@@ -1238,7 +1244,7 @@ function renderHomelandLayout(plan) {
         console.error('Homeland layout failed:', event.message || event);
         if (runId !== layoutRunId) return;
         stopLayout();
-        document.getElementById('layout-summary').textContent = 'The layout couldn\'t be worked out.';
+        document.getElementById('layout-summary').textContent = textKo('The layout couldn\'t be worked out.');
         setStep('layout', 'fail');
     };
     layoutWorker.postMessage({ pieces, cells: cells.map(({ x, y, w, h }) => ({ x, y, w, h })) });
@@ -1441,7 +1447,7 @@ function startLayoutSim(svg, flows, stock) {
     const made = new Set(units.flatMap(u => u.jobs).flatMap(j => [j.terms.makes, j.terms.byproduct?.[0]].filter(Boolean)));
     const sim = { svg, units, speed, stock, made, layer: svg.querySelector('.layout-dots'), dots: [], frame: 0, visible: true };
     layoutSim = sim;
-    document.getElementById('layout-clock').title = `Game time since everything was set up, at ${formatNumber(Math.round(speed))}× speed`;
+    document.getElementById('layout-clock').title = textKo(`Game time since everything was set up, at ${formatNumber(Math.round(speed))}× speed`);
     // Only plays while the diagram is on screen.
     sim.observer = new IntersectionObserver(([entry]) => {
         sim.visible = entry.isIntersecting;
@@ -1578,9 +1584,11 @@ function showSimClock(seconds) {
     const minutes = Math.floor(seconds / 60);
     const days = Math.floor(minutes / 1440);
     const hours = Math.floor(minutes / 60) % 24;
-    const text = `${days ? `${days}d ` : ''}${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
+    const text = isKorean
+        ? `${days ? `${days}일 ` : ''}${hours}시간 ${String(minutes % 60).padStart(2, '0')}분`
+        : `${days ? `${days}d ` : ''}${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
     const clock = document.getElementById('layout-clock');
-    if (clock.textContent !== text) clock.textContent = text;
+    if (clock.textContent !== text) clock.textContent = textKo(text);
 }
 
 // --- Progress card ---------------------------------------------------------------------
@@ -1680,13 +1688,13 @@ function renderProgress() {
         skipped: '<span class="step-icon skipped" aria-label="Skipped">–</span>',
     }[state] || '<span class="step-icon pending" aria-label="Waiting">•</span>');
     const time = ms => ms == null ? '' : ms < 1000 ? `${Math.max(1, Math.round(ms))} ms` : `${(ms / 1000).toFixed(1)} s`;
-    card.innerHTML = `<ol class="progress-steps">${progress.steps.map(step => {
+    card.innerHTML = htmlKo(`<ol class="progress-steps">${progress.steps.map(step => {
         const finished = step.state === 'done' || step.state === 'fail';
         const note = [step.detail, finished ? searchNote(step.proven) : '', finished ? time(step.ms) : ''].filter(Boolean).join(' · ');
         return `
         <li class="progress-step ${step.state}">${icon(step.state)}<span class="step-label">${step.label}</span>
             <span class="step-note">${note}</span></li>`;
-    }).join('')}</ol>`;
+    }).join('')}</ol>`);
 }
 
 // --- My Aniimo -------------------------------------------------------------------------
@@ -1719,7 +1727,7 @@ const escapeText = text => String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;',
 
 // A card's name: what the player called it, else its abilities.
 function rosterLabel(aniimo, i) {
-    if (aniimo.name?.trim()) return escapeText(aniimo.name.trim());
+    if (aniimo.name?.trim()) return `<span data-user-text>${escapeText(aniimo.name.trim())}</span>`;
     const abilities = Object.entries(aniimo.abilities).map(([ability, level]) => `${ability} ${level}`).join(', ');
     return abilities || `Aniimo ${i + 1}`;
 }
@@ -1747,11 +1755,11 @@ function renderRoster() {
                 <div class="roster-personalities">${personalities}</div>
             </div>`;
     }).join('');
-    editor.innerHTML = `${cards || '<p class="hint small">No Aniimo yet. Add the ones you have, or start from the Best plan\'s team.</p>'}
+    editor.innerHTML = htmlKo(`${cards || '<p class="hint small">No Aniimo yet. Add the ones you have, or start from the Best plan\'s team.</p>'}
         <div class="roster-actions">
             <button type="button" class="skip-add-btn" data-roster="add">+ Add Aniimo</button>
             ${lastBestTeam?.length ? '<button type="button" class="skip-add-btn" data-roster="from-best">Start from the Best team</button>' : ''}
-        </div>`;
+        </div>`);
 }
 
 // When the roster can't make a plan: keeps the Aniimo card, and its editor, on screen so the
@@ -1761,7 +1769,7 @@ function showRosterShortfall() {
     showSetupOnly();
     const anyAble = roster.some(a => a.count > 0 && Object.keys(a.abilities).length);
     // An empty roster's editor already says to add some.
-    document.getElementById('aniimo-collapsed-summary').textContent = anyAble ? 'No plan found with these Aniimo.' : '';
+    document.getElementById('aniimo-collapsed-summary').textContent = textKo(anyAble ? 'No plan found with these Aniimo.' : '');
 }
 
 // Of the results, only the Aniimo card, emptied of the last plan's team: its setup may be what
@@ -1770,9 +1778,9 @@ function showSetupOnly() {
     const content = document.getElementById('results-content');
     content.style.display = 'block';
     content.classList.add('setup-only');
-    document.getElementById('aniimo-collapsed-summary').textContent = '';
-    document.getElementById('aniimo-summary').innerHTML = '';
-    document.getElementById('aniimo-abilities').innerHTML = '';
+    document.getElementById('aniimo-collapsed-summary').textContent = textKo('');
+    document.getElementById('aniimo-summary').innerHTML = htmlKo('');
+    document.getElementById('aniimo-abilities').innerHTML = htmlKo('');
     document.getElementById('aniimo-count').hidden = true;
 }
 
@@ -1878,20 +1886,20 @@ function renderRosterSummary(plan) {
         const letters = aniimo.personalities.map(personalityLetter).join('');
         return `<tr><td data-label="Aniimo">${rosterLabel(aniimo, i)}<div class="hint small">${abilities} · ${letters}</div></td><td data-label="How many">${aniimo.count}</td><td data-label="Busy on average">${busy[i].toFixed(1)}</td><td data-label="Where">${places || '<span class="hint small">idle</span>'}</td></tr>`;
     }).join('');
-    document.getElementById('aniimo-summary').innerHTML = roster.length
+    document.getElementById('aniimo-summary').innerHTML = htmlKo(roster.length
         ? `<table class="aniimo-table"><thead><tr><th>Aniimo</th><th>How many</th><th>Busy on average</th><th>Where</th></tr></thead><tbody>${rows}</tbody></table>
            <p class="hint small">${working} of your ${have} Aniimo have work in this plan.</p>`
-        : '<p class="hint">Add the Aniimo you have under My Aniimo to plan with them.</p>';
-    document.getElementById('aniimo-collapsed-summary').textContent = '';
-    document.getElementById('aniimo-abilities').innerHTML = '';
+        : '<p class="hint">Add the Aniimo you have under My Aniimo to plan with them.</p>');
+    document.getElementById('aniimo-collapsed-summary').textContent = textKo('');
+    document.getElementById('aniimo-abilities').innerHTML = htmlKo('');
     const count = document.getElementById('aniimo-count');
-    document.getElementById('aniimo-count-have').textContent = working;
+    document.getElementById('aniimo-count-have').textContent = textKo(working);
     const of = document.getElementById('aniimo-count-of');
-    of.textContent = have;
+    of.textContent = textKo(have);
     of.hidden = false;
     count.hidden = false;
     count.classList.remove('over');
-    count.title = `${working} of your ${have} Aniimo have work in this plan`;
+    count.title = textKo(`${working} of your ${have} Aniimo have work in this plan`);
 }
 
 // --- Season ----------------------------------------------------------------------------
@@ -1910,11 +1918,11 @@ function seasonActive() {
 function renderSeason() {
     document.getElementById('season-section').hidden = !seasonAvailable();
     document.getElementById('season-config').hidden = !seasonActive();
-    document.getElementById('season-notes').innerHTML = SEASON.recipeNotes.map(r => `
+    document.getElementById('season-notes').innerHTML = htmlKo(SEASON.recipeNotes.map(r => `
         <label class="special-option">
             <input type="checkbox" data-special="${r.name}"${unlockedSpecial.has(r.name) ? ' checked' : ''}>
             <span>${prettyItem(r.name)}</span>
-        </label>`).join('');
+        </label>`).join(''));
 }
 
 function attachSeasonHandlers() {
@@ -1955,7 +1963,7 @@ async function loadRecipeIndex() {
             .map(r => ({ name: r.name, facility: r.facility, cost: r.cost || 0, seasonSeedCost: r.season_seed_cost || 0, environment: r.environment || null, jobs: r.jobs || [], ingredients: r.raw_materials || [], amounts: r.required_amount || [], yieldAmount: r.yield_amount || 1, byproduct: r.byproduct_item || null, byproductAmount: r.byproduct?.[1] || 0, turns: r.sell_currency === 'none' }))
             .sort((a, b) => a.facility.localeCompare(b.facility) || a.name.localeCompare(b.name));
         document.getElementById('skip-options').innerHTML =
-            recipeIndex.map(r => `<option value="${recipeLabel(r)}"></option>`).join('');
+            htmlKo(recipeIndex.map(r => `<option value="${recipeLabel(r)}"></option>`).join(''));
         renderSkippedRecipes();
     } catch (error) {
         console.warn('Could not load the recipe list:', error);
@@ -1966,20 +1974,20 @@ async function loadRecipeIndex() {
 function renderRecipeCount() {
     const parts = [];
     const on = [...unlockedSpecial].filter(name => SPECIAL_NAMES.has(name)).length;
-    if (on) parts.push(`${on} on`);
-    if (skippedRecipes.size) parts.push(`${skippedRecipes.size} skipped`);
-    document.getElementById('recipe-count').textContent = parts.length ? ` (${parts.join(', ')})` : '';
+    if (on) parts.push(isKorean ? `${on}개 해금` : `${on} on`);
+    if (skippedRecipes.size) parts.push(isKorean ? `${skippedRecipes.size}개 제외` : `${skippedRecipes.size} skipped`);
+    document.getElementById('recipe-count').textContent = textKo(parts.length ? ` (${parts.join(', ')})` : '');
 }
 
 function renderSkippedRecipes() {
     renderRecipeCount();
     const facilityOf = name => recipeIndex.find(r => r.name === name)?.facility;
-    document.getElementById('skip-chips').innerHTML = [...skippedRecipes]
+    document.getElementById('skip-chips').innerHTML = htmlKo([...skippedRecipes]
         .sort((a, b) => prettyItem(a).localeCompare(prettyItem(b)))
         .map(name => {
             const facility = facilityOf(name);
             return `<span class="skip-chip">${escapeText(prettyItem(name))}${facility ? ` <span class="skip-chip-facility">${facility}</span>` : ''}<button type="button" data-unskip="${escapeText(name)}" aria-label="Stop skipping ${escapeText(prettyItem(name))}" title="Stop skipping">✕</button></span>`;
-        }).join('');
+        }).join(''));
 }
 
 function setSkipped(name, skipped) {
@@ -1999,7 +2007,7 @@ function addSkipFromInput() {
         if (partial.length === 1) match = partial[0];
     }
     if (!match) {
-        input.setCustomValidity('Pick a recipe from the list.');
+        input.setCustomValidity(isKorean ? '목록에서 레시피를 선택하세요.' : 'Choose a recipe from the list.');
         input.reportValidity();
         return;
     }
@@ -2098,9 +2106,9 @@ function levelPicker(group, chosen, ability, label) {
 function renderAbilityLevels() {
     const list = document.getElementById('ability-levels');
     if (!list) return;
-    list.innerHTML = levelledAbilities().map(ability => {
+    list.innerHTML = htmlKo(levelledAbilities().map(ability => {
         return `<div class="ability-level">${abilityTag(ability)}${levelPicker(`level-${ability}`, bestAniimoLevel(ability), ability, `${ability} level`)}</div>`;
-    }).join('');
+    }).join(''));
 }
 
 // Shows the settings for whichever setup is picked, and works that plan out.
@@ -2109,9 +2117,9 @@ function showAniimoSetup() {
     document.getElementById('aniimo-setup-panel').hidden = tab === 'minimum';
     document.getElementById('ability-levels').hidden = tab !== 'best';
     document.getElementById('roster-editor').hidden = tab !== 'custom';
-    document.getElementById('aniimo-setup-hint').textContent = tab === 'custom'
+    document.getElementById('aniimo-setup-hint').textContent = textKo(tab === 'custom'
         ? 'The Aniimo you have. The plan shares their hours out, so it only counts on what they can do.'
-        : 'The best Aniimo you have of each ability.';
+        : 'The best Aniimo you have of each ability.');
     if (tab === 'best') renderAbilityLevels();
     if (tab === 'custom') renderRoster();
     switchAniimoSetup();
@@ -2180,7 +2188,7 @@ function priorityLabel(target, aniipod = bestAniipod()) {
 function renderPriorities() {
     const best = bestAniipod();
     const shown = shownPriorities();
-    document.getElementById('priority-list').innerHTML = shown.map((p, at) => {
+    document.getElementById('priority-list').innerHTML = htmlKo(shown.map((p, at) => {
         // Indices into `priorityOrder`, which also holds any priority that isn't shown.
         const i = priorityOrder.indexOf(p);
         const above = at > 0 ? priorityOrder.indexOf(shown[at - 1]) : -1;
@@ -2202,7 +2210,7 @@ function renderPriorities() {
                 <button type="button" data-move="${i}" data-to="${below}" data-by="1" aria-label="Move ${label} down"${below < 0 ? ' disabled' : ''}>${ARROW_DOWN}</button>
             </span>
         </li>`;
-    }).join('');
+    }).join(''));
 }
 
 function movePriority(from, to) {
@@ -2303,7 +2311,7 @@ function stockAmount(name) {
 
 function populateLevelUpTargets() {
     const select = document.getElementById('level-up-target');
-    select.innerHTML = Object.keys(LEVEL_UP_COSTS).map(level => `<option value="${level}">${level}</option>`).join('');
+    select.innerHTML = htmlKo(Object.keys(LEVEL_UP_COSTS).map(level => `<option value="${level}">${level}</option>`).join(''));
 }
 
 function renderStrategy() {
@@ -2323,21 +2331,21 @@ function renderStrategy() {
     const stockDetails = document.getElementById('level-up-stock');
     const unavailable = levelUpUnavailable();
     if (unavailable) {
-        costEl.innerHTML = `<p class="level-up-note">${unavailable} Plans will go for the most Home Coins.</p>`;
+        costEl.innerHTML = htmlKo(`<p class="level-up-note">${unavailable} Plans will go for the most Home Coins.</p>`);
         stockDetails.style.display = 'none';
         return;
     }
     const cost = levelUpCost();
     const chip = (amount, name) => `<div class="chip"><span><span class="chip-count">${formatNumber(amount)}</span> ${ITEM_NAMES[name] || prettyItem(name)}</span></div>`;
-    costEl.innerHTML = `
+    costEl.innerHTML = htmlKo(`
         <p class="assume-title">RV ${levelUpTarget()} costs</p>
-        <div class="chip-grid">${chip(cost.coins, 'coins')}${cost.items.map(([item, n]) => chip(n, item)).join('')}</div>`;
+        <div class="chip-grid">${chip(cost.coins, 'coins')}${cost.items.map(([item, n]) => chip(n, item)).join('')}</div>`);
     stockDetails.style.display = '';
-    document.getElementById('level-up-stock-grid').innerHTML = stockNames(cost).map(name => `
+    document.getElementById('level-up-stock-grid').innerHTML = htmlKo(stockNames(cost).map(name => `
         <div class="input-field">
             <label for="stock-${name}">${ITEM_NAMES[name] || prettyItem(name)}</label>
             <input type="number" id="stock-${name}" data-stock="${name}" min="0" value="${stockAmount(name)}">
-        </div>`).join('');
+        </div>`).join(''));
 }
 
 function attachStrategyHandlers() {
@@ -2381,9 +2389,9 @@ function formatDuration(seconds) {
     const days = Math.floor(minutes / 1440);
     const hours = Math.floor((minutes % 1440) / 60);
     const mins = minutes % 60;
-    if (days > 0) return `${days}d ${hours}h`;
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
+    if (days > 0) return isKorean ? `${days}일 ${hours}시간` : `${days}d ${hours}h`;
+    if (hours > 0) return isKorean ? `${hours}시간 ${mins}분` : `${hours}h ${mins}m`;
+    return isKorean ? `${mins}분` : `${mins}m`;
 }
 
 // What the plans on screen were asked for, so they're described against the right target even
@@ -2408,27 +2416,27 @@ function renderLevelUp(plan) {
     const label = document.getElementById('level-up-label');
     const time = document.getElementById('level-up-time');
     const lines = document.getElementById('level-up-lines');
-    label.textContent = `RV ${context.target} level-up`;
+    label.textContent = textKo(`RV ${context.target} level-up`);
     const report = plan.level_up;
     if (context.unavailable) {
-        time.textContent = '-';
-        lines.innerHTML = `<p class="level-up-note">${context.unavailable} This plan is for the most Home Coins.</p>`;
+        time.textContent = textKo('-');
+        lines.innerHTML = htmlKo(`<p class="level-up-note">${context.unavailable} This plan is for the most Home Coins.</p>`);
         return;
     }
     if (context.ready) {
-        time.textContent = 'Ready now';
-        lines.innerHTML = `<p class="level-up-note">You already have everything it costs. This plan is for the most Home Coins.</p>`;
+        time.textContent = textKo('Ready now');
+        lines.innerHTML = htmlKo(`<p class="level-up-note">You already have everything it costs. This plan is for the most Home Coins.</p>`);
         return;
     }
     if (!report) {
         const why = plan.level_up_note === 'unreachable'
             ? `These facilities can't make everything it costs.`
             : `The level-up couldn't be planned.`;
-        time.textContent = '-';
-        lines.innerHTML = `<p class="level-up-note">${why} This plan is for the most Home Coins.</p>`;
+        time.textContent = textKo('-');
+        lines.innerHTML = htmlKo(`<p class="level-up-note">${why} This plan is for the most Home Coins.</p>`);
         return;
     }
-    time.textContent = `in ${formatDuration(report.seconds)}`;
+    time.textContent = textKo(`in ${formatDuration(report.seconds)}`);
     const { multiplier } = RATE_UNIT_SECONDS[select.value] || RATE_UNIT_SECONDS.second;
     const perUnit = perSecond => formatRate(perSecond * multiplier);
     const slowest = Math.max(...report.requirements.map(r => r.seconds ?? Infinity));
@@ -2453,12 +2461,12 @@ function renderLevelUp(plan) {
     const coinsNote = surplus.length
         ? `<p class="level-up-coins"><span>Surplus:</span> <strong>${surplus.join(', ')}</strong></p>`
         : '';
-    lines.innerHTML = `
+    lines.innerHTML = htmlKo(`
         <table class="level-up-lines">
             <thead><tr><th>Cost</th><th>Need</th><th>Have</th><th id="level-up-rate-head"></th><th>Ready in</th></tr></thead>
             <tbody>${rows}</tbody>
         </table>
-        ${coinsNote}`;
+        ${coinsNote}`);
     document.getElementById('level-up-rate-head').appendChild(select);
     rateBlock.style.display = 'none';
 }
@@ -2499,8 +2507,8 @@ function renderSeedTable(plan) {
     const per = levelUp
         ? `until RV ${planContext.target}`
         : { second: 'per second', minute: 'per minute', hour: 'per hour', day: 'per day' }[unit] || 'per second';
-    document.getElementById('seed-card-unit').textContent = `Seeds ${per}: one per planting, for every Farmland and Woodland crop in the plan.`;
-    el.innerHTML = `
+    document.getElementById('seed-card-unit').textContent = textKo(`Seeds ${per}: one per planting, for every Farmland and Woodland crop in the plan.`);
+    el.innerHTML = htmlKo(`
         <table>
             <thead><tr><th>Crop</th><th>Plots</th><th>Seeds</th><th>Cost</th></tr></thead>
             <tbody>${rows.map(r => `<tr>
@@ -2510,7 +2518,7 @@ function renderSeedTable(plan) {
                 <td>${r.wheat > 0 ? `${amount(r.wheat)} ${SEASON.currency}` : r.cost > 0 ? `${amount(r.cost)} Home Coins` : 'free'}</td>
             </tr>`).join('')}</tbody>
             ${rows.length > 1 && totals ? `<tfoot><tr><td colspan="3">Total</td><td>${totals}</td></tr></tfoot>` : ''}
-        </table>`;
+        </table>`);
 }
 
 // What each product sold earns in a level-up plan, per hour and by the time the level-up is
@@ -2535,13 +2543,13 @@ function renderProfitBreakdown(plan) {
             <td data-label="Share">${total > 0 ? Math.round(s.rate_per_second / total * 100) : 0}%</td>
             <td data-label="Profit until RV ${planContext?.target}">${formatNumber(Math.floor(s.rate_per_second * report.seconds))}</td>
         </tr>`).join('');
-    document.getElementById('profit-breakdown').innerHTML = `
+    document.getElementById('profit-breakdown').innerHTML = htmlKo(`
         <div class="table-wrapper">
             <table class="facility-plan-table">
                 <thead><tr><th>Product</th><th>Facility</th><th>Sold per hour</th><th>Profit per hour</th><th>Share</th><th>Profit until RV ${planContext?.target}</th></tr></thead>
                 <tbody>${rows}</tbody>
             </table>
-        </div>`;
+        </div>`);
 }
 
 // Get plan-level input values from the form (facilities/modules/prioritize-byproducts, nothing
@@ -2598,8 +2606,7 @@ function getPlanInputValues() {
 // "quick_aromathyst" -> "Quick Aromathyst": the data uses snake_case names.
 function prettyItem(name) {
     if (!name) return name;
-    if (ITEM_NAMES[name]) return ITEM_NAMES[name];
-    return name.split('_').map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
+    return itemNameKo(name);
 }
 
 // A plan row's reason with its item names made readable: "Used for dried_strawberries, jam; the
@@ -2628,7 +2635,7 @@ function floatOrDefault(value, fallback) {
 
 // Format number with commas
 function formatNumber(num) {
-    return num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return num.toLocaleString(isKorean ? 'ko-KR' : 'en-US', { maximumFractionDigits: 2 });
 }
 
 // A rate at the chosen unit: a whole number once it's big enough to read that way, otherwise two
@@ -2644,7 +2651,7 @@ function showError(message) {
     const resultsContent = document.getElementById('results-content');
     const resultsSection = document.getElementById('results-section');
 
-    errorEl.textContent = message;
+    errorEl.textContent = textKo(message);
     errorEl.style.display = 'block';
     resultsContent.style.display = 'none';
     resultsSection.style.display = 'block';
@@ -2656,7 +2663,7 @@ function renderGoalTargets(plan) {
     const select = document.getElementById('goal-target');
     const previous = select.value;
     const rows = priorityRows(plan);
-    select.innerHTML = rows.map(r => `<option value="${r.target}">${goalName(r)}</option>`).join('');
+    select.innerHTML = htmlKo(rows.map(r => `<option value="${r.target}">${goalName(r)}</option>`).join(''));
     if (rows.some(r => r.target === previous)) select.value = previous;
 }
 
@@ -2685,14 +2692,14 @@ function renderProductBreakdown(goalResult) {
 
     const unit = document.getElementById('rate-unit').value;
     const { multiplier, suffix } = RATE_UNIT_SECONDS[unit] || RATE_UNIT_SECONDS.second;
-    document.getElementById('product-breakdown-rate-header').innerHTML = `Profit <span class="th-unit">Home Coins${suffix}</span>`;
+    document.getElementById('product-breakdown-rate-header').innerHTML = htmlKo(`Profit <span class="th-unit">Home Coins${suffix}</span>`);
     // During the season, what each item counts toward the season's points.
     const season = lastPlan?.season_points != null;
     const pointsEach = new Map((lastPlan?.income_streams || []).map(s => [s.item_name, s.points || 0]));
     document.getElementById('product-breakdown-points-header').hidden = !season;
     const pointsCell = amount => season ? `<td>${amount > 0 ? formatNumber(amount) : '&mdash;'}</td>` : '';
 
-    tbody.innerHTML = '';
+    tbody.innerHTML = htmlKo('');
     products.forEach(p => {
         const row = document.createElement('tr');
         // Amount is floored to a whole number; the underlying rate math is a continuous
@@ -2705,28 +2712,28 @@ function renderProductBreakdown(goalResult) {
         // / time; they're intentionally different figures (gross vs. net).
         const wholeAmount = Math.floor(p.total_units);
         const worth = wholeAmount * p.sell_value;
-        row.innerHTML = `
+        row.innerHTML = htmlKo(`
             <td>${prettyItem(p.item_name)}</td>
             <td>${p.facility}</td>
             <td>${wholeAmount.toLocaleString()}</td>
             <td>${formatRate(p.rate_per_second * multiplier)}</td>
             <td>${formatNumber(worth)}</td>
             ${pointsCell(wholeAmount * (pointsEach.get(p.item_name) || 0))}
-        `;
+        `);
         tbody.appendChild(row);
     });
 
     byproducts.forEach(([name, amount]) => {
         const row = document.createElement('tr');
         row.className = 'byproduct-row';
-        row.innerHTML = `
+        row.innerHTML = htmlKo(`
             <td>${name} <span class="hint small">(bonus)</span></td>
             <td>&mdash;</td>
             <td>${Math.floor(amount).toLocaleString()}</td>
             <td>&mdash;</td>
             <td>not sold</td>
             ${pointsCell(0)}
-        `;
+        `);
         tbody.appendChild(row);
     });
 }
@@ -2746,7 +2753,7 @@ function renderSeedsNeeded(goalResult) {
     }
     section.style.display = 'block';
 
-    tbody.innerHTML = requirements.map(r => `
+    tbody.innerHTML = htmlKo(requirements.map(r => `
         <tr>
             <td>${prettyItem(r.item_name)}</td>
             <td>${r.facility}</td>
@@ -2754,7 +2761,7 @@ function renderSeedsNeeded(goalResult) {
             <td>${r.seeds_per_plot.toLocaleString()}</td>
             <td>${r.total_seeds.toLocaleString()}</td>
         </tr>
-    `).join('');
+    `).join(''));
 }
 
 // Fixed display order for environment groups; matches ENVIRONMENT_BUILDINGS's mode order in
@@ -2976,11 +2983,11 @@ function renderAniimoSummary(plan) {
     });
     const collapsedSummary = document.getElementById('aniimo-collapsed-summary');
     if (groups.size === 0) {
-        container.innerHTML = '<p class="hint">Nothing in this plan needs an Aniimo.</p>';
-        collapsedSummary.textContent = 'No Aniimo needed.';
+        container.innerHTML = htmlKo('<p class="hint">Nothing in this plan needs an Aniimo.</p>');
+        collapsedSummary.textContent = textKo('No Aniimo needed.');
         const count = document.getElementById('aniimo-count');
         if (count) count.hidden = true;
-        document.getElementById('aniimo-abilities').innerHTML = '';
+        document.getElementById('aniimo-abilities').innerHTML = htmlKo('');
         return;
     }
     // Each row gets its own Aniimo, which is the clearer team to keep. Only when that asks for
@@ -3045,16 +3052,16 @@ function renderAniimoSummary(plan) {
     const of = document.getElementById('aniimo-count-of');
     const count = document.getElementById('aniimo-count');
     if (have && of && count) {
-        have.textContent = total;
-        of.textContent = cap ?? '';
+        have.textContent = textKo(total);
+        of.textContent = textKo(cap ?? '');
         of.hidden = !cap;
         count.hidden = false;
         count.classList.toggle('over', !!cap && total > cap);
-        count.title = cap
+        count.title = textKo(cap
             ? `${total} Aniimo for this plan; an RV level ${selectedHomeLevel()} homeland holds ${cap}`
-            : `${total} Aniimo for this plan`;
+            : `${total} Aniimo for this plan`);
     }
-    collapsedSummary.textContent = '';
+    collapsedSummary.textContent = textKo('');
     // How many of each ability the plan needs, in the game's order, like its Abilities screen.
     const needed = new Map(ABILITIES.map(a => [a.name, 0]));
     kept.forEach(g => needed.set(g.ability, (needed.get(g.ability) || 0) + g.count));
@@ -3071,7 +3078,7 @@ function renderAniimoSummary(plan) {
         const times = g.count > 1 ? `<span class="ability-times">×${g.count}</span>` : '';
         return `<span class="ability-kind">${dot(g.ability, g.environment ? '·' : g.level, g.bonus, tip)}${times}</span>`;
     };
-    document.getElementById('aniimo-abilities').innerHTML = ABILITIES.map(a => {
+    document.getElementById('aniimo-abilities').innerHTML = htmlKo(ABILITIES.map(a => {
         const n = a.name === 'Hauling' ? `${needed.get(a.name) + 1}+` : needed.get(a.name);
         const zero = n === 0;
         const dots = kept
@@ -3086,8 +3093,8 @@ function renderAniimoSummary(plan) {
             <div class="ability-cell${zero ? ' zero' : ''}" title="${a.name}: ${a.about}">
                 <span class="ability-count">${n}</span><span class="ability-name">${a.name}</span>
             </div>${stack}</div>`;
-    }).join('');
-    container.innerHTML = `
+    }).join(''));
+    container.innerHTML = htmlKo(`
         <div class="table-wrapper">
             <table class="facility-plan-table">
                 <thead><tr><th>Aniimo</th><th>How many</th><th>Busy on average</th><th>Where</th></tr></thead>
@@ -3095,7 +3102,7 @@ function renderAniimoSummary(plan) {
             </table>
         </div>
         ${capNote}
-    `;
+    `);
 }
 
 // Splits one environment mode's rows across its individual building units. Unlike the old
@@ -3439,7 +3446,7 @@ function renderFacilityPlan(plan) {
     const steps = plan.coin_items || [];
 
     if (steps.length === 0) {
-        container.innerHTML = '<p class="hint">Nothing profitable to produce with the current facilities.</p>';
+        container.innerHTML = htmlKo('<p class="hint">Nothing profitable to produce with the current facilities.</p>');
         return;
     }
 
@@ -3540,7 +3547,7 @@ function renderFacilityPlan(plan) {
         `;
     }).join('');
 
-    container.innerHTML = environmentSections + categorySections;
+    container.innerHTML = htmlKo(environmentSections + categorySections);
 }
 
 // Re-renders "Your Rate" from `lastPlan` at whichever unit is currently selected in the
@@ -3570,10 +3577,10 @@ function updateRateDisplay(pickUnit = false) {
         if (select.closest('#priority-rates')) rateLine.appendChild(select);
         const label = CURRENCY_LABELS[lastPlan.currency] || lastPlan.currency;
         const points = lastPlan.season_points > 1e-12 ? ` + ${formatRate(lastPlan.season_points * multiplier)} ${SEASON.points}` : '';
-        document.getElementById('plan-rate').textContent = `${formatRate(lastPlan.rate_per_second * multiplier)} ${label}${points}${suffix}`;
-        document.getElementById('rate-label').textContent = 'Your Rate';
+        document.getElementById('plan-rate').textContent = textKo(`${formatRate(lastPlan.rate_per_second * multiplier)} ${label}${points}${suffix}`);
+        document.getElementById('rate-label').textContent = textKo('Your Rate');
         rateLine.style.display = '';
-        table.innerHTML = '';
+        table.innerHTML = htmlKo('');
         return;
     }
     // Priorities: one row each, in the player's order, at the selected unit.
@@ -3591,13 +3598,13 @@ function updateRateDisplay(pickUnit = false) {
             <td>${why || made}</td>
         </tr>`;
     }).join('');
-    table.innerHTML = `
+    table.innerHTML = htmlKo(`
         <table class="level-up-lines rate-table">
             <thead><tr><th>#</th><th>Priority</th><th id="priority-rate-head"></th><th></th></tr></thead>
             <tbody>${body}</tbody>
-        </table>`;
+        </table>`);
     document.getElementById('priority-rate-head').appendChild(select);
-    document.getElementById('rate-label').textContent = 'Your Rates';
+    document.getElementById('rate-label').textContent = textKo('Your Rates');
     rateLine.style.display = 'none';
 }
 
@@ -3679,20 +3686,20 @@ function displayPlan(plan) {
     const explored = document.getElementById('plan-explored-hint');
     explored.style.display = plan.proven_optimal === true ? 'none' : '';
     if (plan.proven_optimal === true) {
-        explored.textContent = '';
+        explored.textContent = textKo('');
     } else if (plan.proven_optimal === false && plan.upper_bound > 0) {
         const gap = Math.max(0, (plan.upper_bound - plan.rate_per_second) / plan.upper_bound * 100);
-        explored.textContent = `Best plan found in the time allowed; the best possible is at most ${gap.toFixed(1)}% higher.`;
+        explored.textContent = textKo(`Best plan found in the time allowed; the best possible is at most ${gap.toFixed(1)}% higher.`);
     } else {
         const reason = plan.fallback_reason ? ` (${plan.fallback_reason})` : '';
-        explored.textContent = `The exact planner couldn't run${reason}, so this plan comes from the backup planner and may not be the very best. Reloading the page usually fixes this.`;
+        explored.textContent = textKo(`The exact planner couldn't run${reason}, so this plan comes from the backup planner and may not be the very best. Reloading the page usually fixes this.`);
     }
 
     const unverifiedEl = document.getElementById('plan-unverified');
     const unverified = plan.unverified || [];
     unverifiedRowKeys = new Set(unverified.map(u => `${u.facility}|${u.item_name}`));
     if (unverified.length) {
-        unverifiedEl.textContent = `${unverified.length} recipe${unverified.length === 1 ? '' : 's'} in this plan ${unverified.length === 1 ? "hasn't" : "haven't"} been checked in game yet (tagged below). If any of those numbers are off, so is this plan.`;
+        unverifiedEl.textContent = textKo(`${unverified.length} recipe${unverified.length === 1 ? '' : 's'} in this plan ${unverified.length === 1 ? "hasn't" : "haven't"} been checked in game yet (tagged below). If any of those numbers are off, so is this plan.`);
         unverifiedEl.style.display = 'block';
     } else {
         unverifiedEl.style.display = 'none';
@@ -3701,7 +3708,7 @@ function displayPlan(plan) {
     const skippedEl = document.getElementById('plan-skipped');
     const skipped = planContext?.skipped || [];
     skippedEl.style.display = skipped.length ? 'block' : 'none';
-    skippedEl.textContent = skipped.length ? `Skipping ${skipped.map(prettyItem).join(', ')}.` : '';
+    skippedEl.textContent = textKo(skipped.length ? `Skipping ${skipped.map(prettyItem).join(', ')}.` : '');
 
     renderSeedTable(plan);
     renderLevelUp(plan);
@@ -3716,8 +3723,8 @@ function displayPlan(plan) {
 function displayGoal(goalResult) {
     if (!goalResult.success) {
         lastGoalResult = null;
-        document.getElementById('total-time').textContent = '-';
-        document.getElementById('amount-produced').textContent = '-';
+        document.getElementById('total-time').textContent = textKo('-');
+        document.getElementById('amount-produced').textContent = textKo('-');
         document.getElementById('product-breakdown-section').style.display = 'none';
         document.getElementById('seeds-needed-section').style.display = 'none';
         console.warn('Goal calculation failed:', goalResult.error);
@@ -3725,8 +3732,8 @@ function displayGoal(goalResult) {
     }
 
     lastGoalResult = goalResult;
-    document.getElementById('total-time').textContent = goalResult.total_time_seconds > 0 ? formatDuration(goalResult.total_time_seconds) : '0m';
-    document.getElementById('amount-produced').textContent = formatNumber(goalResult.amount_produced);
+    document.getElementById('total-time').textContent = textKo(goalResult.total_time_seconds > 0 ? formatDuration(goalResult.total_time_seconds) : '0m');
+    document.getElementById('amount-produced').textContent = textKo(formatNumber(goalResult.amount_produced));
 
     renderProductBreakdown(goalResult);
     renderSeedsNeeded(goalResult);
@@ -3853,9 +3860,9 @@ async function runTimeToGoal() {
     const rows = priorityRows(lastPlan);
     const chosen = rows.find(r => r.target === document.getElementById('goal-target').value) || rows[0];
     const name = goalName(chosen);
-    document.getElementById('target-amount-label').textContent = `Target ${name}`;
-    document.getElementById('current-amount-label').textContent = `Current ${name}`;
-    document.getElementById('amount-produced-label').textContent = `${name} produced`;
+    document.getElementById('target-amount-label').textContent = textKo(`Target ${name}`);
+    document.getElementById('current-amount-label').textContent = textKo(`Current ${name}`);
+    document.getElementById('amount-produced-label').textContent = textKo(`${name} produced`);
 
     const target = floatOrDefault(document.getElementById('target-amount').value, 0);
     const current = floatOrDefault(document.getElementById('current-amount').value, 0);
@@ -3878,8 +3885,8 @@ async function runTimeToGoal() {
     const seconds = needed <= 0 ? 0 : chosen.perSecond <= 1e-12 ? null : timeToMake(chosen, needed);
     if (seconds === null) {
         lastGoalResult = null;
-        document.getElementById('total-time').textContent = chosen.missing || 'Not made by this plan';
-        document.getElementById('amount-produced').textContent = '-';
+        document.getElementById('total-time').textContent = textKo(chosen.missing || 'Not made by this plan');
+        document.getElementById('amount-produced').textContent = textKo('-');
         document.getElementById('product-breakdown-section').style.display = 'none';
         document.getElementById('seeds-needed-section').style.display = 'none';
         renderGoalAlso(rows, chosen, null);
@@ -3888,7 +3895,7 @@ async function runTimeToGoal() {
     try {
         const result = JSON.parse(await callWorker('time_to_reach', JSON.stringify({ plan: lastPlan, seconds })));
         displayGoal(result);
-        document.getElementById('amount-produced').textContent = formatNumber(Math.round(needed));
+        document.getElementById('amount-produced').textContent = textKo(formatNumber(Math.round(needed)));
         renderGoalAlso(rows, chosen, seconds, result);
     } catch (error) {
         console.error('Goal calculation error:', error);
@@ -3931,7 +3938,7 @@ function renderGoalAlso(rows, chosen, seconds, result) {
             .map(r => `${formatNumber(Math.floor(made(r)))} ${goalName(r)}`)
         : [];
     el.style.display = also.length ? 'block' : 'none';
-    el.innerHTML = also.length ? `<span>By then you'll also have:</span> <strong>${also.join(', ')}</strong>` : '';
+    el.innerHTML = htmlKo(also.length ? `<span>By then you'll also have:</span> <strong>${also.join(', ')}</strong>` : '');
 }
 
 // --- Facility recipe reference modal ----------------------------------------------------
@@ -3957,9 +3964,9 @@ function formatRecipeTime(seconds) {
     const hours = Math.floor(total / 3600);
     const minutes = Math.floor((total % 3600) / 60);
     const secs = total % 60;
-    if (hours > 0) return `${hours}h ${minutes}m ${secs}s`;
-    if (minutes > 0) return `${minutes}m ${secs}s`;
-    return `${secs}s`;
+    if (hours > 0) return isKorean ? `${hours}시간 ${minutes}분 ${secs}초` : `${hours}h ${minutes}m ${secs}s`;
+    if (minutes > 0) return isKorean ? `${minutes}분 ${secs}초` : `${minutes}m ${secs}s`;
+    return isKorean ? `${secs}초` : `${secs}s`;
 }
 
 function formatRecipeInputs(recipe) {
@@ -4032,7 +4039,7 @@ function renderRecipeTables(recipes) {
         list.sort((a, b) => a.facility_level - b.facility_level || a.name.localeCompare(b.name));
     });
 
-    container.innerHTML = FACILITY_CATEGORIES.map(category => {
+    container.innerHTML = htmlKo(FACILITY_CATEGORIES.map(category => {
         const facilitiesInCategory = FACILITIES.filter(f => f.category === category && byFacility.has(f.name));
         if (facilitiesInCategory.length === 0) return '';
 
@@ -4082,14 +4089,14 @@ function renderRecipeTables(recipes) {
                 ${tables}
             </div>
         `;
-    }).join('');
+    }).join(''));
 }
 
 window.showFacilities = async function() {
     document.getElementById('facilitiesModal').classList.add('show');
     if (recipesRendered) return;
     if (!wasmReady) {
-        document.getElementById('facilities-loading-hint').textContent = 'Optimizer not ready. Please wait...';
+        document.getElementById('facilities-loading-hint').textContent = textKo('Optimizer not ready. Please wait...');
         return;
     }
     try {
@@ -4100,7 +4107,7 @@ window.showFacilities = async function() {
         document.getElementById('facilities-loading-hint').style.display = 'none';
     } catch (error) {
         console.error('Failed to load recipe data:', error);
-        document.getElementById('facilities-loading-hint').textContent = 'Failed to load recipe data. Please refresh the page.';
+        document.getElementById('facilities-loading-hint').textContent = textKo('Failed to load recipe data. Please refresh the page.');
     }
 }
 
@@ -4116,6 +4123,7 @@ window.closeFacilitiesOnBackdrop = function(event) {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
+    localizeElement(document.body);
     const savedData = readStorage();
     initFacilityTiers(savedData);
     renderFacilityCards();
@@ -4158,7 +4166,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const unheardOf = event.target.dataset?.confirm;
         if (unheardOf && checked) {
             const ok = window.confirm(
-                `No level-${value} ${unheardOf} Aniimo is known in the game yet. Plan as though you have one?`
+                isKorean ? `레벨 ${value}의 ${textKo(unheardOf)} 애니모는 게임 내에서 아직 확인되지 않았습니다. 보유한 것으로 계산할까요?`
+                    : `No level-${value} ${unheardOf} Aniimo is known in the game yet. Plan as if you have it?`
             );
             if (!ok) {
                 showAniimoSetup();
@@ -4228,7 +4237,7 @@ function showTip(el) {
     const line = (className, text) => {
         const div = document.createElement('div');
         div.className = className;
-        div.textContent = text;
+        div.textContent = textKo(text);
         return tipCard.appendChild(div);
     };
     tipCard.replaceChildren();
@@ -4289,4 +4298,3 @@ document.addEventListener('focusin', (e) => {
 });
 document.addEventListener('focusout', hideTip);
 window.addEventListener('scroll', hideTip, { passive: true, capture: true });
-
