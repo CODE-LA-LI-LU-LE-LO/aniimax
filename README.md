@@ -18,7 +18,9 @@
 
 ## 한국어판 용어
 
-시설·아이템 명칭은 [Aniimo Camp](https://aniimocamp.com/ko/)의 영문·한국어 데이터를 같은 아이템 ID로 대조했습니다. 확인한 명칭과 출처 ID는 [web/game-terms-ko.js](web/game-terms-ko.js), UI 문구와 임시 번역은 [web/locale-ko.js](web/locale-ko.js)에 있습니다. 한국어 이름에는 영어 이름을 병기하여 원문 대조와 검색을 지원합니다. 성격·모듈·일부 이벤트 명칭은 임시 번역이며 공식 명칭으로 단정하지 않습니다. 계산용 키, CSV 식별자, API 필드, 저장 입력값과 CLI 옵션은 영어를 유지합니다. 예를 들어 `농장 (Farmland)`는 내부적으로 `Farmland`, `밀 (Wheat)`은 `wheat`를 사용합니다.
+시설·아이템 명칭은 [Aniimo Camp](https://aniimocamp.com/ko/)의 영문·한국어 데이터를 같은 아이템 ID로 대조했습니다. 확인한 명칭과 출처 ID는 [web/game-terms-ko.js](web/game-terms-ko.js), UI 문구와 임시 번역은 [web/locale-ko.js](web/locale-ko.js)에 있습니다. 한국어 화면은 한국어 명칭만, 영어 화면은 영어 명칭만 표시합니다. 한국어 화면에서도 영어 이름이나 아이템 식별자로 레시피를 검색할 수 있습니다. 아직 번역이 없는 신규 품목은 영어로 표시합니다. 성격·모듈·일부 이벤트 명칭은 임시 번역이며 공식 명칭으로 단정하지 않습니다. 계산용 키, CSV 식별자, API 필드, 저장 입력값과 CLI 옵션은 영어를 유지합니다. 예를 들어 화면의 `농장`은 내부적으로 `Farmland`, `밀`은 `wheat`를 사용합니다.
+
+상단의 밝은·어두운 테마 버튼으로 선택한 테마도 브라우저에 저장하며, 새로고침과 언어 전환 후에 유지합니다. 저장값이 없으면 어두운 테마를 사용합니다. 브라우저 저장소가 차단되어도 현재 페이지에서 전환할 수 있지만 선택은 저장하지 못합니다.
 
 ## 기능
 
@@ -685,6 +687,7 @@ web/
   index.html         - Optimizer page (facility plan, goal timing, math/help/facilities modals)
   index.en.html      - English page; keep application element IDs aligned with index.html
   language-preference.js - Language switching, persistence and URL selection
+  theme.js           - Shared theme switching and persistence
   locale.js          - Presentation adapter for the selected language
   locale-ko.js       - Korean UI text and provisional game terminology
   game-terms-ko.js   - Reference-verified Korean names and source IDs
@@ -763,7 +766,8 @@ cargo test --release --locked --test exact_tests
 node --check web/app.js
 node --check web/locale.js
 node --check web/locale-ko.js
-node --test tests/localization_tests.mjs tests/language_tests.mjs
+node --check web/theme.js
+node --test tests/localization_tests.mjs tests/language_tests.mjs tests/theme_tests.mjs
 ```
 
 선택적 데이터 생성과 고비용 패킹 테스트는 기본적으로 무시합니다. 관련 규칙을 바꿀 때만 각 테스트의 안내에 따라 실행하세요. `bake_pair_coverage`는 데이터 파일을 다시 생성할 수 있습니다.

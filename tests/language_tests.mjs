@@ -61,7 +61,7 @@ test('presentation adapter keeps English names and Korean labels separate', asyn
         assert.equal(en.htmlKo('<span>Farmland</span>'), '<span>Farmland</span>');
         globalThis.document.documentElement.lang = 'ko';
         const ko = await import('../web/locale.js?test=ko');
-        assert.equal(ko.itemNameKo('milled_rice'), '쌀 (Milled Rice)');
+        assert.equal(ko.itemNameKo('milled_rice'), '쌀');
         assert.notEqual(ko.textKo('Find the best plan'), 'Find the best plan');
     } finally {
         delete globalThis.document;

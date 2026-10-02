@@ -9,6 +9,7 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
+    <script src="theme.js"></script>
     <header>
         <h1>aniimax</h1>
         <div class="header-buttons">
@@ -468,16 +469,6 @@
     </div>
 
     <script>
-        window.toggleTheme = function() {
-            const body = document.body;
-            const button = document.getElementById('themeToggle');
-            body.classList.toggle('light');
-            if (body.classList.contains('light')) {
-                button.textContent = 'dark';
-            } else {
-                button.textContent = 'light';
-            }
-        }
         
         window.showHelp = function() {
             document.getElementById('helpModal').classList.add('show');

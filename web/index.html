@@ -9,6 +9,7 @@
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
+    <script src="theme.js"></script>
     <header>
         <h1>aniimax</h1>
         <div class="header-buttons">
@@ -459,23 +460,13 @@
                     <li><strong>캠프장 배치</strong>: 운반이 잦은 시설을 저장 장치에 가깝게 배치하고 환경 범위를 반영합니다.</li>
                     <li><strong>목표 설정</strong>: 선택한 자원의 목표 달성 시간과 함께 생산되는 자원을 확인합니다.</li>
                 </ul>
-                <p class="hint small">시설·아이템 이름은 아래 한국어판 참고 자료와 대조했습니다. 성격·모듈·일부 이벤트 명칭은 임시 번역입니다. 원문 대조를 위해 영어 이름도 표시합니다. 한국어판 참고 자료: <a href="https://aniimocamp.com/ko/" target="_blank" rel="noopener">Aniimo Camp</a>.</p>
+                <p class="hint small">시설·아이템 이름은 아래 한국어판 참고 자료와 대조했습니다. 성격·모듈·일부 이벤트 명칭은 임시 번역입니다. 한국어판 참고 자료: <a href="https://aniimocamp.com/ko/" target="_blank" rel="noopener">Aniimo Camp</a>.</p>
 
             </div>
         </div>
     </div>
 
     <script>
-        window.toggleTheme = function() {
-            const body = document.body;
-            const button = document.getElementById('themeToggle');
-            body.classList.toggle('light');
-            if (body.classList.contains('light')) {
-                button.textContent = '어두운 테마';
-            } else {
-                button.textContent = '밝은 테마';
-            }
-        }
         
         window.showHelp = function() {
             document.getElementById('helpModal').classList.add('show');

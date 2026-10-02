@@ -1954,7 +1954,7 @@ let skippedRecipes = new Set();
 let recipeIndex = [];
 
 function recipeLabel(recipe) {
-    return `${prettyItem(recipe.name)} (${recipe.facility})`;
+    return `${prettyItem(recipe.name)} (${textKo(recipe.facility)})`;
 }
 
 async function loadRecipeIndex() {
@@ -2001,9 +2001,11 @@ function addSkipFromInput() {
     const input = document.getElementById('skip-input');
     const text = input.value.trim().toLowerCase();
     if (!text) return;
-    let match = recipeIndex.find(r => recipeLabel(r).toLowerCase() === text);
+    // English search remains available without displaying bilingual labels.
+    const searchLabels = r => [recipeLabel(r), r.name, `${r.name.replaceAll('_', ' ')} (${r.facility})`, r.name.replaceAll('_', ' ')].map(label => label.toLowerCase());
+    let match = recipeIndex.find(r => searchLabels(r).includes(text));
     if (!match) {
-        const partial = recipeIndex.filter(r => recipeLabel(r).toLowerCase().includes(text));
+        const partial = recipeIndex.filter(r => searchLabels(r).some(label => label.includes(text)));
         if (partial.length === 1) match = partial[0];
     }
     if (!match) {

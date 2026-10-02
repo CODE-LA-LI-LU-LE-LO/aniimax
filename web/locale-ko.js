@@ -78,7 +78,7 @@ export function itemNameKo(name) {
         const match = /^(quick|premium|advanced)_(.+)$/.exec(name);
         if (match && ITEM_NAMES_KO[match[2]]) translated = `${PREFIXES[match[1]]} ${ITEM_NAMES_KO[match[2]]}`;
     }
-    return translated ? `${translated} (${original})` : original;
+    return translated || original;
 }
 
 export const UI_TEXT = {
@@ -193,12 +193,12 @@ export const UI_TEXT = {
 };
 
 // Translate at the explicit rendering boundary; never observe or rewrite live form values.
-// Protect already translated bilingual names, so nested rendering is idempotent.
+// Remove legacy bilingual labels only when their English name is in the dictionary.
 const termEntries = Object.entries(GAME_TERMS).sort((a, b) => b[0].length - a[0].length);
 const escapeRegex = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const recipeKeys = [...Object.keys(ITEM_NAMES_KO), ...Object.keys(PREFIXES).flatMap(prefix => Object.keys(ITEM_NAMES_KO).map(key => `${prefix}_${key}`))];
 const itemEntries = recipeKeys.map(key => [key.replaceAll('_', ' ').replace(/\b[a-z]/g, c => c.toUpperCase()), itemNameKo(key)]);
-const displayMap = new Map([...itemEntries, ...termEntries.map(([name, ko]) => [name, `${ko} (${name})`])]);
+const displayMap = new Map([...itemEntries, ...termEntries]);
 for (const [alias,key] of Object.entries({
     'Coarse-Sifted Ore':'coarse_sifted_ore', 'River-Washed Stones':'river_washed_stones',
     'Premium River-Washed Stones':'premium_river_washed_stones', 'Sugar-Roasted Chestnuts':'sugar_roasted_chestnuts',
@@ -216,7 +216,8 @@ export function textKo(value) {
     if (!core) return text;
     if (UI_TEXT[core]) return text.replace(core, UI_TEXT[core]);
     const held = [];
-    let result = text.replace(/[가-힣][가-힣\s]*\([^()]*[A-Za-z][^()]*\)/g, match => `\uE000${held.push(match)-1}\uE001`);
+    let result = text.replace(/([가-힣][가-힣\s]*)\(([^()]*[A-Za-z][^()]*)\)/g, (match, korean, english) =>
+        displayMap.has(english) ? korean.trimEnd() : `\uE000${held.push(match)-1}\uE001`);
     result = result.replace(phrasePattern, source => phraseMap.get(source));
     result = result
         .replace(/\bper (second|minute|hour|day)\b/g, source => UI_TEXT[source])

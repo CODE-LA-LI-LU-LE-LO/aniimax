@@ -18,7 +18,9 @@ This link is the upstream project's public app, not this fork's deployment. This
 
 ## Korean Terminology
 
-Facility and item names were matched by item ID against the English and Korean data on [Aniimo Camp](https://aniimocamp.com/ko/). Verified names and source IDs are in [web/game-terms-ko.js](web/game-terms-ko.js); UI strings and provisional translations are in [web/locale-ko.js](web/locale-ko.js). Korean labels also show English names for comparison and search. Personality, module and some event names are provisional, not asserted to be official. Solver keys, CSV identifiers, API fields, saved inputs and CLI options remain in English; for example, `농장 (Farmland)` uses `Farmland` internally and `밀 (Wheat)` uses `wheat`.
+Facility and item names were matched by item ID against the English and Korean data on [Aniimo Camp](https://aniimocamp.com/ko/). Verified names and source IDs are in [web/game-terms-ko.js](web/game-terms-ko.js); UI strings and provisional translations are in [web/locale-ko.js](web/locale-ko.js). Korean pages show Korean names only and English pages show English names only. Korean pages still accept English names or item identifiers for recipe search. New items without a translation fall back to English. Personality, module and some event names are provisional, not asserted to be official. Solver keys, CSV identifiers, API fields, saved inputs and CLI options remain in English; for example, `농장` uses `Farmland` internally and `밀` uses `wheat`.
+
+The header's light/dark theme button also saves your selection in this browser, preserving it across reloads and language switches. With no saved preference, the default is dark. If browser storage is blocked, switching still works for the current page but the selection cannot be saved.
 
 ## Features
 
@@ -676,6 +678,7 @@ web/
   index.html         - Optimizer page (facility plan, goal timing, math/help/facilities modals)
   index.en.html      - English page; keep application element IDs aligned with index.html
   language-preference.js - Language switching, persistence and URL selection
+  theme.js           - Shared theme switching and persistence
   locale.js          - Presentation adapter for the selected language
   locale-ko.js       - Korean UI text and provisional game terminology
   game-terms-ko.js   - Reference-verified Korean names and source IDs
@@ -754,7 +757,8 @@ cargo test --release --locked --test exact_tests
 node --check web/app.js
 node --check web/locale.js
 node --check web/locale-ko.js
-node --test tests/localization_tests.mjs tests/language_tests.mjs
+node --check web/theme.js
+node --test tests/localization_tests.mjs tests/language_tests.mjs tests/theme_tests.mjs
 ```
 
 Optional data-generation and expensive packing tests are ignored by default. Run them only when changing the relevant rules and follow each test's instructions; `bake_pair_coverage` can regenerate a data file.
