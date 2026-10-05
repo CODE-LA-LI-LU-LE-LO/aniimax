@@ -15,6 +15,16 @@ test('compound facility names are translated before shorter ingredient names', (
     assert.equal(textKo('Tidewhisper Sandcastle'), '속삭임 모래성');
 });
 
+test('environment states match Korean game terminology', () => {
+    assert.equal(textKo('Cool'), '차가움');
+    assert.equal(textKo('Freeze'), '빙결');
+    assert.equal(textKo('Warm'), '따뜻함');
+    assert.equal(textKo('Scorching'), '뜨거움');
+    assert.equal(textKo('Cool coverage'), '차가움 적용 범위');
+    assert.equal(textKo('Freeze coverage'), '빙결 적용 범위');
+    assert.equal(textKo('Provides Cool or Freeze growing conditions for crops that need one'), '차가움 또는 빙결이 필요한 작물에 해당 환경을 제공합니다.');
+});
+
 test('nested render calls remain idempotent with Korean-only labels', () => {
     for (const value of ['Quick Wheat', 'Aniipod Maker', 'Fire Lv.4 · Practical', 'Target '+itemNameKo('milled_rice'), '10 Home Coins/hour']) {
         const localized = textKo(value);
@@ -24,10 +34,19 @@ test('nested render calls remain idempotent with Korean-only labels', () => {
 
 test('legacy bilingual labels lose known English annotations but retain useful parentheses', () => {
     assert.equal(textKo('생태 모듈 (Ecological Module)'), '생태 모듈');
-    assert.equal(textKo('속성 밀 (Quick Wheat)'), '속성 밀');
+    assert.equal(textKo('속성 밀 (Quick Wheat)'), '고속 레시피 · 밀');
     assert.equal(textKo('농장 (Farmland)'), '농장');
     assert.equal(textKo('목표량 (2000)'), '목표량 (2000)');
     assert.equal(textKo('기준 (RV 2)'), '기준 (RV 2)');
+});
+
+test('quick recipes use Korean game labels without changing English identifiers', () => {
+    assert.equal(itemNameKo('quick_wheat'), '고속 레시피 · 밀');
+    assert.equal(itemNameKo('quick_rice'), '고속 레시피 · 벼');
+    assert.equal(itemNameKo('quick_well_water'), '고속 레시피 · 우물물');
+    assert.equal(textKo('Quick Wheat'), '고속 레시피 · 밀');
+    assert.equal(textKo('고속 레시피 · 밀 (Quick Wheat)'), '고속 레시피 · 밀');
+    assert.equal(textKo(textKo('Quick Wheat')), '고속 레시피 · 밀');
 });
 
 test('numeric quantities and unknown future recipe names survive localization', () => {

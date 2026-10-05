@@ -20,7 +20,7 @@ export const GAME_TERMS = {
     'Faithful': '성실형', 'Tenacious': '끈기형', 'Playful': '장난형', 'Judicious': '신중형',
     'Fire': '불', 'Grass': '풀', 'Water': '물', 'Earth': '땅', 'Lightning': '번개', 'Ice': '얼음',
     'Wind': '바람', 'Dark': '어둠', 'Light': '빛', 'Hauling': '운반', 'Artisanship': '공예', 'Leisure': '여가', 'Perfumery': '조향',
-    'Warm': '따뜻함', 'Scorching': '뜨거움', 'Cool': '시원함', 'Freeze': '차가움', 'Adequate': '적정 조명', 'Room temp': '상온',
+    'Warm': '따뜻함', 'Scorching': '뜨거움', 'Cool': '차가움', 'Freeze': '빙결', 'Adequate': '적정 조명', 'Room temp': '상온',
     ...REFERENCE_GAME_TERMS,
 };
 
@@ -68,7 +68,7 @@ export const ITEM_NAMES_KO = {
     ...REFERENCE_ITEM_NAMES,
 };
 
-const PREFIXES = { quick: '속성', premium: '고급', advanced: '상급' };
+const PREFIXES = { quick: '고속 레시피 ·', premium: '고급', advanced: '상급' };
 export function itemNameKo(name) {
     if (!name) return name;
     if (name === 'coins') return '홈코인';
@@ -94,7 +94,7 @@ export const UI_TEXT = {
     'For the level-up': '레벨 업에 필요',
     'for the level-up': '레벨 업에 필요',
     'Provides Warm or Scorching growing conditions for crops that need one':'따뜻함 또는 뜨거움이 필요한 작물에 해당 환경을 제공합니다.',
-    'Provides Cool or Freeze growing conditions for crops that need one':'시원함 또는 차가움이 필요한 작물에 해당 환경을 제공합니다.',
+    'Provides Cool or Freeze growing conditions for crops that need one':'차가움 또는 빙결이 필요한 작물에 해당 환경을 제공합니다.',
     'Provides Adequate growing conditions for crops that need one':'적정 조명이 필요한 작물에 해당 환경을 제공합니다.',
     'The calculator picks whichever mode is more profitable.':'계산기가 더 수익성 높은 모드를 선택합니다.',
     'Covers a 9x9 area around itself; how many plots fit depends on what shares it.':'주변 9×9타일을 덮습니다. 함께 배치하는 시설에 따라 구획 수가 달라집니다.',
@@ -227,8 +227,8 @@ export function textKo(value) {
     if (!core) return text;
     if (UI_TEXT[core]) return text.replace(core, UI_TEXT[core]);
     const held = [];
-    let result = text.replace(/([가-힣][가-힣\s]*)\(([^()]*[A-Za-z][^()]*)\)/g, (match, korean, english) =>
-        displayMap.has(english) ? korean.trimEnd() : `\uE000${held.push(match)-1}\uE001`);
+    let result = text.replace(/([가-힣][가-힣\s·]*)\(([^()]*[A-Za-z][^()]*)\)/g, (match, korean, english) =>
+        displayMap.has(english) ? displayMap.get(english) : `\uE000${held.push(match)-1}\uE001`);
     result = result.replace(phrasePattern, source => phraseMap.get(source));
     result = result
         .replace(/RV (\d+) is the top level, so there's no level-up to plan\./g, 'RV $1은 최고 레벨이므로 추가 레벨 업 계획이 없습니다.')
