@@ -64,3 +64,20 @@ test('goal and plan captions preserve their quantities in Korean', () => {
     assert.equal(textKo('Best plan found in the time allowed; the best possible is at most 1.5% higher.'), '제한 시간 내 최선의 계획입니다. 가능한 최적값은 최대 1.5% 더 높을 수 있습니다.');
     assert.equal(textKo('Used for wheat, rice; the rest sells directly'), 'wheat, rice 생산에 사용; 나머지는 바로 판매');
 });
+
+test('Aniimo team work descriptions translate all growing jobs and locations', () => {
+    assert.equal(textKo('Earth Lv.1 · Reclaiming crops'), '땅 Lv.1 · 작물 개간');
+    assert.equal(textKo('Grass Lv.1 · Sowing crops, Collecting woodland'), '풀 Lv.1 · 씨앗 심기, 숲 채집');
+    const jobs = ['Reclaiming', 'Sowing', 'Watering', 'Reaping', 'Collecting', 'Logging'];
+    for (const job of jobs) {
+        for (const place of ['crops', 'farmland', 'woodland']) {
+            const source = `${job} ${place}`;
+            const translated = textKo(`Earth Lv.1 · ${source}`);
+            assert.doesNotMatch(translated, /Reclaiming|Sowing|Watering|Reaping|Collecting|Logging|crops|farmland|woodland/);
+            assert.equal(textKo(translated), translated);
+        }
+        for (const place of ['Farmland', 'Woodland']) {
+            assert.doesNotMatch(textKo(`${job} on ${place}`), /[A-Za-z]/);
+        }
+    }
+});

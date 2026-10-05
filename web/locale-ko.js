@@ -81,7 +81,12 @@ export function itemNameKo(name) {
     return translated || original;
 }
 
+const GROWER_JOBS_KO = { Reclaiming: '개간', Sowing: '씨앗 심기', Watering: '물주기', Reaping: '수확', Collecting: '채집', Logging: '벌목' };
+const GROWER_PLACES_KO = { crops: '작물', farmland: '농장', woodland: '숲' };
+
 export const UI_TEXT = {
+    ...Object.fromEntries(Object.entries(GROWER_JOBS_KO).flatMap(([job, translatedJob]) =>
+        Object.entries(GROWER_PLACES_KO).map(([place, translatedPlace]) => [`${job} ${place}`, `${translatedPlace} ${translatedJob}`]))),
     'Share setup': '설정 공유', 'Shareable link': '공유 링크', 'No limit': '제한 없음',
     'Your changes are saved in this browser.': '변경한 설정을 이 브라우저에 저장했습니다.',
     'Link copied. It includes your current setup.': '현재 설정이 포함된 링크를 복사했습니다.',
@@ -138,7 +143,7 @@ export const UI_TEXT = {
     "These facilities can't make everything it costs.":'현재 시설로는 필요한 모든 자원을 생산할 수 없습니다.',
     "The level-up couldn't be planned.":'레벨 업 계획을 계산하지 못했습니다.',
     'This plan is for the most Home Coins.':'홈코인 최대화 계획입니다.',
-    'Carries produce to storage. How much work this is isn\'t known yet; add more if produce piles up.':'생산물을 저장 장치으로 운반합니다. 정확한 작업량은 아직 확인되지 않았으므로, 생산물이 쌓이면 운반 애니모를 추가하세요.',
+    'Carries produce to storage. How much work this is isn\'t known yet; add more if produce piles up.':'생산물을 저장 장치로 운반합니다. 정확한 작업량은 아직 확인되지 않았으므로, 생산물이 쌓이면 운반 애니모를 추가하세요.',
     'The solver ran out of time before it could prove nothing does better.':'더 나은 계획이 없음을 입증하기 전에 제한 시간에 도달했습니다.',
     'No plan the model allows does better. Some of its options, such as how plots can be arranged around an environment building, come from a shortlist rather than every possibility.':'현재 모델이 허용하는 계획 중 최적임을 확인했습니다. 환경 건물 주변 배치 등 일부 선택지는 모든 경우가 아닌 미리 계산한 후보를 사용합니다.',
     'Aniimax - Aniimo Production Optimizer':'Aniimax - 애니모 생산 최적화',
@@ -231,6 +236,8 @@ export function textKo(value) {
         displayMap.has(english) ? displayMap.get(english) : `\uE000${held.push(match)-1}\uE001`);
     result = result.replace(phrasePattern, source => phraseMap.get(source));
     result = result
+        .replace(/\b(Reclaiming|Sowing|Watering|Reaping|Collecting|Logging) on (Farmland|Woodland)\b/g,
+            (_, job, place) => `${GROWER_PLACES_KO[place.toLowerCase()]} ${GROWER_JOBS_KO[job]}`)
         .replace(/RV (\d+) is the top level, so there's no level-up to plan\./g, 'RV $1은 최고 레벨이므로 추가 레벨 업 계획이 없습니다.')
         .replace(/There's no level-up cost for RV (\d+)\./g, 'RV $1의 레벨 업 비용 정보가 없습니다.')
         .replace(/\b(Warm|Scorching|Cool|Freeze|Adequate|Room temp) coverage\b/g, '$1 적용 범위')
