@@ -38,6 +38,9 @@ test('numeric quantities and unknown future recipe names survive localization', 
 });
 
 test('goal and plan captions preserve their quantities in Korean', () => {
+    assert.equal(textKo("RV 20 is the top level, so there's no level-up to plan. Plans will go for the most Home Coins."), 'RV 20은 최고 레벨이므로 추가 레벨 업 계획이 없습니다. 홈코인 생산량이 최대가 되도록 계획합니다.');
+    assert.equal(textKo('For the level-up'), '레벨 업에 필요');
+    assert.equal(textKo('Scorching coverage'), '뜨거움 적용 범위');
     assert.equal(textKo('RV 12 level-up'), 'RV 12 레벨 업');
     assert.equal(textKo('Best plan found in the time allowed; the best possible is at most 1.5% higher.'), '제한 시간 내 최선의 계획입니다. 가능한 최적값은 최대 1.5% 더 높을 수 있습니다.');
     assert.equal(textKo('Used for wheat, rice; the rest sells directly'), 'wheat, rice 생산에 사용; 나머지는 바로 판매');

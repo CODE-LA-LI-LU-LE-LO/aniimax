@@ -82,6 +82,9 @@ export function itemNameKo(name) {
 }
 
 export const UI_TEXT = {
+    'Plans will go for the most Home Coins.': '홈코인 생산량이 최대가 되도록 계획합니다.',
+    'For the level-up': '레벨 업에 필요',
+    'for the level-up': '레벨 업에 필요',
     'Provides Warm or Scorching growing conditions for crops that need one':'따뜻함 또는 뜨거움이 필요한 작물에 해당 환경을 제공합니다.',
     'Provides Cool or Freeze growing conditions for crops that need one':'시원함 또는 차가움이 필요한 작물에 해당 환경을 제공합니다.',
     'Provides Adequate growing conditions for crops that need one':'적정 조명이 필요한 작물에 해당 환경을 제공합니다.',
@@ -220,6 +223,11 @@ export function textKo(value) {
         displayMap.has(english) ? korean.trimEnd() : `\uE000${held.push(match)-1}\uE001`);
     result = result.replace(phrasePattern, source => phraseMap.get(source));
     result = result
+        .replace(/RV (\d+) is the top level, so there's no level-up to plan\./g, 'RV $1은 최고 레벨이므로 추가 레벨 업 계획이 없습니다.')
+        .replace(/There's no level-up cost for RV (\d+)\./g, 'RV $1의 레벨 업 비용 정보가 없습니다.')
+        .replace(/\b(Warm|Scorching|Cool|Freeze|Adequate|Room temp) coverage\b/g, '$1 적용 범위')
+        .replace(/\b(Warm|Scorching|Cool|Freeze|Adequate|Room temp) where both reach\b/g, '$1 (두 건물의 범위가 겹치는 구역)')
+        .replace(/\b(Warm|Scorching|Cool|Freeze|Adequate|Room temp), this plan's plots\b/g, '$1 (이 계획의 구획)')
         .replace(/\bper (second|minute|hour|day)\b/g, source => UI_TEXT[source])
         .replace(/^(\d+) \(everything unlocked\)$/, '$1 (모든 항목 해금)')
         .replace(/^RV (\d+) costs$/, 'RV $1 필요 자원')
