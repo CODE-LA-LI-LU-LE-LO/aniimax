@@ -82,6 +82,14 @@ export function itemNameKo(name) {
 }
 
 export const UI_TEXT = {
+    'Share setup': '설정 공유', 'Shareable link': '공유 링크', 'No limit': '제한 없음',
+    'Your changes are saved in this browser.': '변경한 설정을 이 브라우저에 저장했습니다.',
+    'Link copied. It includes your current setup.': '현재 설정이 포함된 링크를 복사했습니다.',
+    'Copy the link above to share your setup.': '위 링크를 복사하여 설정을 공유하세요.',
+    'Could not create a share link for this setup.': '이 설정의 공유 링크를 만들지 못했습니다.',
+    'This share link is invalid. Your saved setup was kept.': '유효하지 않은 공유 링크입니다. 기존 저장 설정을 유지합니다.',
+    'Shared setup loaded. Your saved setup is kept until you edit this one.': '공유 설정을 불러왔습니다. 이 설정을 수정하기 전까지 기존 저장 설정을 유지합니다.',
+    'A seasonal event with its own currency, Moonray Wheat, which buys the season\'s seeds. Keeping enough wheat on hand is up to you; plans show how much their seeds use. Season items also earn Harvest Moon Points, which you can rank under Priorities.': '시즌 씨앗은 달빛 밀 이삭으로 구입합니다. 하루에 사용할 예산을 입력하면 그 범위에서 계산하며, 비워 두면 제한 없이 계산합니다. 필요한 씨앗 재화를 직접 준비하세요. 시즌 품목의 포인트도 우선순위에 포함할 수 있습니다.',
     'Plans will go for the most Home Coins.': '홈코인 생산량이 최대가 되도록 계획합니다.',
     'For the level-up': '레벨 업에 필요',
     'for the level-up': '레벨 업에 필요',

@@ -24,6 +24,8 @@ The header's light/dark theme button also saves your selection in this browser, 
 
 ## Features
 
+**Setup sharing:** Use “Share setup” to create and copy a compressed link containing the current inputs. Loading a shared setup keeps existing saved inputs until you edit it, which saves the new inputs. Language and theme remain separate browser settings.
+
 **Web app**
 
 - **Simple or Advanced Setup**: Simple mode only asks for your RV level and assumes everything that level allows is built and upgraded; advanced mode sets every facility's count and level (and can start from the simple-mode setup)
@@ -34,7 +36,7 @@ The header's light/dark theme button also saves your selection in this browser, 
 - **Whole-Unit Realism**: Growers are rounded to whole plots and processors are dedicated to one recipe each, matching how the game actually works; only the Woodworking Bench and Chimney Kiln take turns between tiers, since each tier is made from the one below
 - **Level-Up Strategy**: Plans the soonest next RV level-up (Home Coins plus Wood Blocks and Mineral Sand, or from RV 7 the Woodworking Bench and Chimney Kiln items it costs), counting what you already have, then earns as many Home Coins as that pace allows; RV 2 to 20
 - **Priorities Strategy**: Rank what you want (Home Coins, Aniimo EXP, Aniipods, Wood Blocks, Mineral Sand, and Harvest Moon Points during the festival) and switch off what you don't; each one is maximized in turn, keeping what the ones above it reached, and Home Coins take whatever is left
-- **Harvest Moon Festival**: From RV 10, plans can use the season's crops and recipes (Recipe Note ones once you tick them), count Harvest Moon Points on everything sold, and show the Moonray Wheat their seeds use; wheat is taken as unlimited
+- **Harvest Moon Festival**: From RV 10, plans can use the season's crops and recipes (Recipe Note ones once you tick them), count Harvest Moon Points on everything sold, and show the Moonray Wheat their seeds use. Enter a daily seed budget to enforce that limit, or leave it blank for no limit
 - **Growing Environments**: Heat Furnace, Cooling Unit and Sunlamp layouts are planned with the plots, including a crop grown outside its environment at the slower rate, and a Heat Furnace and Cooling Unit placed so their areas overlap and add up to a third temperature between them
 - **Watering**: A plot is watered twice as it grows, each watering taking an eighth off its full-speed time
 - **Recipe Reference Page**: Every recipe in the game data, browsable by facility, independent of what you own
@@ -684,6 +686,8 @@ web/
   game-terms-ko.js   - Reference-verified Korean names and source IDs
   facility-config.js - Shared facility list/categories
   app.js             - Page logic, including the facility recipe reference modal
+  share-config.js    - Compressed, versioned setup links
+  turn-jobs.js       - Allocation of recipes sharing physical facility units
   style.css          - Styling
   worker.js          - Web Worker running the wasm module and HiGHS
   layout.js          - Homeland layout: places facilities around the Storage Unit
@@ -698,6 +702,8 @@ README.en.md         - English documentation
 ```
 
 ## Contributing
+
+Also see the upstream [contributing guide](CONTRIBUTING.md) for setup, validation and pull request guidance.
 
 Contributions are welcome! Here's how you can help:
 
