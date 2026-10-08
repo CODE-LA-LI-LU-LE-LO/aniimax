@@ -13,8 +13,8 @@
     <header>
         <h1>aniimax</h1>
         <div class="header-buttons">
-            <a class="toggle-button" href="index.ru.html?lang=ru" onclick="switchLanguageTo('ru'); return false;">Русский</a>
-            <button type="button" class="toggle-button" id="languageToggle" onclick="switchLanguage()" lang="ko" aria-label="Switch to Korean">한국어</button>
+            <a class="toggle-button" href="index.html?lang=ko" onclick="switchLanguageTo('ko'); return false;">한국어</a>
+            <select id="language-switch" class="toggle-button" aria-label="Language"></select>
             <button class="toggle-button" onclick="showFacilities()" id="facilitiesToggle">facilities</button>
             <button class="toggle-button" onclick="showMath()" id="mathToggle">math</button>
             <button class="toggle-button" onclick="showHelp()" id="helpToggle">help</button>
@@ -369,7 +369,7 @@
         </main>
 
         <footer>
-            <p>aniimax v<span id="version">-</span> | <a href="https://github.com/CODE-LA-LI-LU-LE-LO/aniimax" target="_blank" rel="noopener">Korean fork GitHub</a> | <a href="https://github.com/ae-bii/aniimax" target="_blank" rel="noopener">Original GitHub</a></p>
+            <p>aniimax v<span id="version">-</span> | <a href="https://github.com/ae-bii/aniimax" target="_blank" rel="noopener">Original GitHub</a> | <a href="https://github.com/CODE-LA-LI-LU-LE-LO/aniimax" target="_blank" rel="noopener">Korean fork GitHub</a></p>
             <p class="footer-note">Unofficial fan-made tool. Not affiliated with or endorsed by the makers of Aniimo.</p>
             <p class="footer-note">Your inputs are saved in your browser and never sent anywhere.</p>
         </footer>
@@ -482,21 +482,21 @@
     </div>
 
     <script>
-        
+
         window.showHelp = function() {
             document.getElementById('helpModal').classList.add('show');
         }
-        
+
         window.closeHelp = function() {
             document.getElementById('helpModal').classList.remove('show');
         }
-        
+
         window.closeHelpOnBackdrop = function(event) {
             if (event.target.id === 'helpModal') {
                 closeHelp();
             }
         }
-        
+
         window.showMath = function() {
             document.getElementById('mathModal').classList.add('show');
             // Trigger MathJax to render
@@ -504,17 +504,17 @@
                 MathJax.typesetPromise();
             }
         }
-        
+
         window.closeMath = function() {
             document.getElementById('mathModal').classList.remove('show');
         }
-        
+
         window.closeMathOnBackdrop = function(event) {
             if (event.target.id === 'mathModal') {
                 closeMath();
             }
         }
-        
+
         // Close modal on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {

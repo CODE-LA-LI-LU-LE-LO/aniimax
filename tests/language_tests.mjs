@@ -35,6 +35,21 @@ test('root URL restores English preference and ignores invalid stored preference
     assert.deepEqual(runPage({ saved: 'invalid' }).navigations, []);
 });
 
+test('Russian links preserve shared configuration and root visits restore Russian', () => {
+    const state = runPage({ href: 'https://example.com/aniimax/?lang=ko#config=v1.example' });
+    state.window.switchLanguageTo('ru');
+    assert.equal(state.navigations[0][1], 'https://example.com/aniimax/index.ru.html?lang=ru#config=v1.example');
+    assert.equal(state.values.get('aniimax-language'), 'ru');
+    assert.equal(runPage({ saved: 'ru' }).navigations[0][1], 'https://example.com/aniimax/index.ru.html');
+});
+
+test('language navigation uses the current URL after an imported setup is edited', () => {
+    const state = runPage({ href: 'https://example.com/aniimax/?lang=ko#config=v1.example' });
+    state.window.location.href = 'https://example.com/aniimax/?lang=ko';
+    state.window.switchLanguageTo('ru');
+    assert.equal(state.navigations[0][1], 'https://example.com/aniimax/index.ru.html?lang=ru');
+});
+
 test('explicit URL language overrides a saved preference', () => {
     const state = runPage({ saved: 'en', href: 'https://example.com/aniimax/?lang=ko' });
     assert.deepEqual(state.navigations, []);

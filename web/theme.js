@@ -8,7 +8,7 @@
         const button = document.getElementById('themeToggle');
         if (!button) return;
         const light = document.body.classList.contains('light');
-        button.textContent = document.documentElement.lang === 'en'
+        button.textContent = document.documentElement.lang !== 'ko'
             ? (light ? 'dark' : 'light') : (light ? '어두운 테마' : '밝은 테마');
         button.setAttribute('aria-pressed', String(light));
     }
@@ -18,4 +18,5 @@
         updateButton();
     };
     document.addEventListener('DOMContentLoaded', updateButton);
+    document.addEventListener('aniimax-language-change', updateButton);
 })();

@@ -2,6 +2,11 @@ import { textKo, htmlKo, localizeElement, itemNameKo, isKorean } from './locale.
 
 // Aniimax Web Application
 
+// The upstream runtime is used by the Russian page; Korean/English retain their presentation adapter.
+const { currentLocale, sourceAttribute, translate } = document.getElementById('language-switch')
+    ? await import('./i18n.js')
+    : { currentLocale: () => isKorean ? 'ko-KR' : 'en-US', sourceAttribute: (el, name) => el.getAttribute(name), translate: textKo };
+
 import {
     FACILITIES, FACILITY_CATEGORIES, FACILITY_CATEGORY_BY_NAME, FACILITY_FOOTPRINTS, HOMELAND_PLOTS, HOMELAND_PLOT_SIZE,
     MAX_HOME_LEVEL, ANIIMO_MAX, simpleSetup,
@@ -1625,7 +1630,10 @@ function showSimClock(seconds) {
         ? `${days ? `${days}일 ` : ''}${hours}시간 ${String(minutes % 60).padStart(2, '0')}분`
         : `${days ? `${days}d ` : ''}${hours}h ${String(minutes % 60).padStart(2, '0')}m`;
     const clock = document.getElementById('layout-clock');
-    if (clock.textContent !== text) clock.textContent = textKo(text);
+    if (clock.dataset.sourceText !== text) {
+        clock.dataset.sourceText = text;
+        clock.textContent = translate(textKo(text));
+    }
 }
 
 // --- Progress card ---------------------------------------------------------------------
@@ -1777,7 +1785,7 @@ function renderRoster() {
                 `<label><input type="radio" name="roster-${i}-${ability}" data-level="${i}|${ability}" value="${l}"${l === level ? ' checked' : ''}> ${l}</label>`).join('')}</span><button type="button" class="roster-x" data-drop="${i}|${ability}" aria-label="Remove ${ability}" title="Remove ${ability}">✕</button></span>`).join('');
         const missing = ABILITIES.map(a => a.name).filter(name => !(name in aniimo.abilities));
         const add = missing.length
-            ? `<select class="roster-add-ability" data-add="${i}" aria-label="Add an ability"><option value="">+ Ability</option>${missing.map(name => `<option>${name}</option>`).join('')}</select>`
+            ? `<select class="roster-add-ability" data-add="${i}" aria-label="Add an ability"><option value="">+ Ability</option>${missing.map(name => `<option value="${name}">${name}</option>`).join('')}</select>`
             : '';
         const personalities = PERSONALITY_PAIRS.map((pair, p) => `<span class="tabs level-picker roster-pair" role="radiogroup" aria-label="${pair.names.join(' or ')}">${pair.names.map((name, k) =>
             `<label title="${name}"><input type="radio" name="roster-${i}-pair-${p}" data-personality="${i}|${p}" value="${name}"${aniimo.personalities[p] === name ? ' checked' : ''}> ${pair.letters[k]}</label>`).join('')}</span>`).join('');
@@ -1997,16 +2005,32 @@ let skippedRecipes = new Set();
 let recipeIndex = [];
 
 function recipeLabel(recipe) {
-    return `${prettyItem(recipe.name)} (${textKo(recipe.facility)})`;
+    return `${translate(prettyItem(recipe.name))} (${translate(textKo(recipe.facility))})`;
 }
+
+function renderRecipeOptions() {
+    document.getElementById('skip-options').innerHTML =
+        recipeIndex.map(r => `<option value="${escapeText(recipeLabel(r))}"></option>`).join('');
+}
+
+document.addEventListener('aniimax-language-change', () => {
+    const input = document.getElementById('skip-input');
+    const options = document.getElementById('skip-options');
+    const selected = Array.from(options.options)
+        .findIndex(option => option.value.toLowerCase() === input.value.trim().toLowerCase());
+    renderRecipeOptions();
+    if (selected >= 0) {
+        input.value = options.options[selected].value;
+        input.setCustomValidity('');
+    }
+});
 
 async function loadRecipeIndex() {
     try {
         recipeIndex = JSON.parse(await callWorker('get_all_items'))
             .map(r => ({ name: r.name, facility: r.facility, cost: r.cost || 0, seasonSeedCost: r.season_seed_cost || 0, environment: r.environment || null, jobs: r.jobs || [], ingredients: r.raw_materials || [], amounts: r.required_amount || [], yieldAmount: r.yield_amount || 1, byproduct: r.byproduct_item || null, byproductAmount: r.byproduct?.[1] || 0, turns: r.sell_currency === 'none' }))
             .sort((a, b) => a.facility.localeCompare(b.facility) || a.name.localeCompare(b.name));
-        document.getElementById('skip-options').innerHTML =
-            htmlKo(recipeIndex.map(r => `<option value="${recipeLabel(r)}"></option>`).join(''));
+        renderRecipeOptions();
         renderSkippedRecipes();
     } catch (error) {
         console.warn('Could not load the recipe list:', error);
@@ -2682,7 +2706,7 @@ function floatOrDefault(value, fallback) {
 
 // Format number with commas
 function formatNumber(num) {
-    return num.toLocaleString(isKorean ? 'ko-KR' : 'en-US', { maximumFractionDigits: 2 });
+    return num.toLocaleString(currentLocale(), { maximumFractionDigits: 2 });
 }
 
 // A rate at the chosen unit: a whole number once it's big enough to read that way, otherwise two
@@ -2762,7 +2786,7 @@ function renderProductBreakdown(goalResult) {
         row.innerHTML = htmlKo(`
             <td>${prettyItem(p.item_name)}</td>
             <td>${p.facility}</td>
-            <td>${wholeAmount.toLocaleString()}</td>
+            <td>${wholeAmount.toLocaleString(currentLocale())}</td>
             <td>${formatRate(p.rate_per_second * multiplier)}</td>
             <td>${formatNumber(worth)}</td>
             ${pointsCell(wholeAmount * (pointsEach.get(p.item_name) || 0))}
@@ -2776,7 +2800,7 @@ function renderProductBreakdown(goalResult) {
         row.innerHTML = htmlKo(`
             <td>${name} <span class="hint small">(bonus)</span></td>
             <td>&mdash;</td>
-            <td>${Math.floor(amount).toLocaleString()}</td>
+            <td>${Math.floor(amount).toLocaleString(currentLocale())}</td>
             <td>&mdash;</td>
             <td>not sold</td>
             ${pointsCell(0)}
@@ -2804,9 +2828,9 @@ function renderSeedsNeeded(goalResult) {
         <tr>
             <td>${prettyItem(r.item_name)}</td>
             <td>${r.facility}</td>
-            <td>${r.facility_count.toLocaleString()}</td>
-            <td>${r.seeds_per_plot.toLocaleString()}</td>
-            <td>${r.total_seeds.toLocaleString()}</td>
+            <td>${r.facility_count.toLocaleString(currentLocale())}</td>
+            <td>${r.seeds_per_plot.toLocaleString(currentLocale())}</td>
+            <td>${r.total_seeds.toLocaleString(currentLocale())}</td>
         </tr>
     `).join(''));
 }
@@ -4173,7 +4197,7 @@ window.closeFacilitiesOnBackdrop = function(event) {
 }
 
 // Event listeners
-document.addEventListener('DOMContentLoaded', async () => {
+async function initApp() {
     localizeElement(document.body);
     let sharedData = null;
     try {
@@ -4227,7 +4251,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (unheardOf && checked) {
             const ok = window.confirm(
                 isKorean ? `레벨 ${value}의 ${textKo(unheardOf)} 애니모는 게임 내에서 아직 확인되지 않았습니다. 보유한 것으로 계산할까요?`
-                    : `No level-${value} ${unheardOf} Aniimo is known in the game yet. Plan as if you have it?`
+                    : translate(`No level-${value} ${unheardOf} Aniimo is known in the game yet. Plan as though you have one?`)
             );
             if (!ok) {
                 showAniimoSetup();
@@ -4263,7 +4287,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
-});
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApp);
+else initApp();
 
 // --- Hover tips --------------------------------------------------------------------------
 // One card for hover tips, shown at once instead of after the browser's delay. Diagram pieces
@@ -4288,7 +4315,7 @@ function tipAttrs(title, { detail = '', stats = '', color = '' } = {}) {
 function showTip(el) {
     // A title set since the last hover replaces the one kept aside.
     if (el.hasAttribute('title')) {
-        const text = el.getAttribute('title');
+        const text = sourceAttribute(el, 'title');
         el.removeAttribute('title');
         el.dataset.tipText = text;
         if (!el.hasAttribute('aria-label')) el.setAttribute('aria-description', text);
@@ -4313,7 +4340,7 @@ function showTip(el) {
         if (el.dataset.tipDetail) line('tip-detail', el.dataset.tipDetail);
         if (el.dataset.tipStats) line('tip-stats', el.dataset.tipStats);
     } else {
-        line('tip-text', el.dataset.tipText);
+        line('tip-text', translate(el.dataset.tipText));
     }
     tipTarget = el;
     tipCard.hidden = false;
@@ -4323,6 +4350,8 @@ function hideTip() {
     tipTarget = null;
     tipCard.hidden = true;
 }
+
+document.addEventListener('aniimax-language-change', hideTip);
 
 // Above the point, centered on it and kept on screen; below it where there's no room above.
 function placeTip(x, y, below = y) {

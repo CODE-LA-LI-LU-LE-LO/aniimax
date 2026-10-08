@@ -170,6 +170,7 @@ Options:
 
   -h, --help                         Print help
   -V, --version                      Print version
+      --language <LANGUAGE>          Output language: en or ru [default: en]
 ```
 
 > **CLI coverage:** the CLI exposes the 10 facilities listed above; any facility without a flag counts as not owned. The CLI also doesn't model environment coverage, so it can recommend a crop that needs a Heat Furnace, Cooling Unit or Sunlamp you don't own. For full coverage, use the web app (see [Try It Online](#try-it-online) or [Web Development](#web-development)).
@@ -601,6 +602,10 @@ cargo doc --open
 
 ## Web Development
 
+### Supported Languages
+
+This fork defaults to Korean on the web. Use the existing `English` / `한국어` button and the `Русский` link to switch. The Russian page uses the upstream `web/i18n.js` runtime and `web/locales/en.json`, `web/locales/ru.json` catalogs, with a selector for English/Russian. Korean pages retain the existing verified terminology and presentation dictionary. Switching languages preserves shared setup links, saved inputs and themes. CLI `--language en|ru` defaults to English; Korean CLI output is not currently supported. Facility, item and solver identifiers stay in English. Run `node --test tests/*.mjs` to verify catalog keys, placeholders and language switching.
+
 ### Building the Web App
 
 1. Install wasm-pack:
@@ -679,6 +684,9 @@ data/
 web/
   index.html         - Optimizer page (facility plan, goal timing, math/help/facilities modals)
   index.en.html      - English page; keep application element IDs aligned with index.html
+  index.ru.html      - Upstream English/Russian page with a Korean return link
+  i18n.js            - Upstream English/Russian translation runtime
+  locales/           - English phrase inventory and Russian translation catalog
   language-preference.js - Language switching, persistence and URL selection
   theme.js           - Shared theme switching and persistence
   locale.js          - Presentation adapter for the selected language

@@ -172,6 +172,7 @@ Options:
 
   -h, --help                         Print help
   -V, --version                      Print version
+      --language <LANGUAGE>          Output language: en or ru [default: en]
 ```
 
 > **CLI 지원 범위:** 위의 10개 시설만 지원하며 옵션이 없는 시설은 보유하지 않은 것으로 처리합니다. 환경 범위도 모델링하지 않으므로 보유하지 않은 열에너지화로·냉방기·형광등이 필요한 작물을 추천할 수 있습니다. 전체 시설·환경 계산은 웹 앱을 사용하세요([온라인으로 사용하기](#온라인으로-사용하기), [웹 개발](#웹-개발) 참고).
@@ -608,6 +609,10 @@ cargo doc --open
 
 ## 웹 개발
 
+### 지원 언어
+
+이 포크의 웹 기본 언어는 한국어입니다. 기존 `English` / `한국어` 버튼과 `Русский` 링크로 전환합니다. 러시아어 화면은 원본의 `web/i18n.js`와 `web/locales/en.json`, `web/locales/ru.json` 번역 사전을 사용하며 선택 메뉴로 영어·러시아어를 전환할 수 있습니다. 한국어 화면은 기존 검증된 용어·번역 사전을 유지합니다. 언어 전환 시 설정 공유 링크의 내용과 저장 입력·테마를 유지합니다. CLI의 `--language en|ru`는 영어가 기본이며 현재 한국어 CLI는 지원하지 않습니다. 시설·아이템·계산 식별자는 영어를 유지합니다. `node --test tests/*.mjs`로 사전 키·자리표시자 일치와 언어 전환을 검증하세요.
+
 ### 웹 앱 빌드하기
 
 1. wasm-pack을 설치합니다.
@@ -688,6 +693,9 @@ data/
 web/
   index.html         - Optimizer page (facility plan, goal timing, math/help/facilities modals)
   index.en.html      - English page; keep application element IDs aligned with index.html
+  index.ru.html      - Upstream English/Russian page with a Korean return link
+  i18n.js            - Upstream English/Russian translation runtime
+  locales/           - English phrase inventory and Russian translation catalog
   language-preference.js - Language switching, persistence and URL selection
   theme.js           - Shared theme switching and persistence
   locale.js          - Presentation adapter for the selected language
